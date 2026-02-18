@@ -48,7 +48,7 @@
       "apis": [
         {
           "type": "biowallet-v1",
-          "endpoint": "https://walletapi.bfmeta.info/wallet/bfm",
+          "endpoint": "https://walletapi.bf-meta.org/wallet/bfm",
           "config": {
             "genesisBlock": "./genesis/bfmeta.json"
           }
@@ -78,7 +78,7 @@
       "apis": [
         {
           "type": "biowallet-v1",
-          "endpoint": "https://walletapi.bfmeta.info/wallet/ccchain",
+          "endpoint": "https://walletapi.bf-meta.org/wallet/ccchain",
           "config": {
             "genesisBlock": "./genesis/ccchain.json"
           }
@@ -102,7 +102,7 @@
       "apis": [
         {
           "type": "biowallet-v1",
-          "endpoint": "https://walletapi.bfmeta.info/wallet/pmchain",
+          "endpoint": "https://walletapi.bf-meta.org/wallet/pmchain",
           "config": {
             "genesisBlock": "./genesis/pmchain.json"
           }
@@ -126,7 +126,7 @@
       "apis": [
         {
           "type": "biowallet-v1",
-          "endpoint": "https://walletapi.bfmeta.info/wallet/bfchainv2",
+          "endpoint": "https://walletapi.bf-meta.org/wallet/bfchainv2",
           "config": {
             "genesisBlock": "./genesis/bfchainv2.json"
           }
@@ -150,7 +150,7 @@
       "apis": [
         {
           "type": "biowallet-v1",
-          "endpoint": "https://walletapi.bfmeta.info/wallet/btgmeta",
+          "endpoint": "https://walletapi.bf-meta.org/wallet/btgmeta",
           "config": {
             "genesisBlock": "./genesis/btgmeta.json"
           }
@@ -172,7 +172,7 @@
       "apis": [
         {
           "type": "biowallet-v1",
-          "endpoint": "https://walletapi.bfmeta.info/wallet/biwmeta",
+          "endpoint": "https://walletapi.bf-meta.org/wallet/biwmeta",
           "config": {
             "genesisBlock": "./genesis/biwmeta.json"
           }
@@ -202,7 +202,7 @@
       "apis": [
         {
           "type": "biowallet-v1",
-          "endpoint": "https://walletapi.bfmeta.info/wallet/ethmeta",
+          "endpoint": "https://walletapi.bf-meta.org/wallet/ethmeta",
           "config": {
             "genesisBlock": "./genesis/ethmeta.json"
           }

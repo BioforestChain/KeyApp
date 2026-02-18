@@ -1,0 +1,63 @@
+import{j as n,Q as x,b as h}from"./iframe-Dt8wZwjo.js";import{w as u,u as r,a as c,e as l}from"./index-BjIXEP53.js";import{a as w}from"./wallet-config-Bsg9j7Fn.js";import"./preload-helper-PPVm8Dsz.js";import"./utils-4perknFd.js";import"./useWalletTheme--Xvqf_ND.js";import"./user-profile-CFs3-A_r.js";import"./index-D0E7N0oa.js";import"./derivation-C83xHGyB.js";import"./schemas-CO8_C8zP.js";import"./avatar-codec-qOpqRNDZ.js";import"./service-BC0gkQFu.js";import"./bioforest-C2-FpCP_.js";import"./wallet-card-carousel-ByAp2Zc3.js";import"./swiper-CPJL4tIU.js";import"./wallet-card-B52nvTyW.js";import"./hologram-canvas-DyF5pQY3.js";import"./chain-icon-D3MBpYXR.js";import"./address-display-mQ3Y3XYv.js";import"./web-BAU47KQt.js";import"./createReactComponent-BDIgNuTp.js";import"./breakpoint-DQ_qwb34.js";import"./useTranslation-Br48bveG.js";import"./index-Dfw9gGKV.js";import"./IconCheck-USSEt4uX.js";import"./IconChevronDown-Dp37T5Ai.js";import"./IconSettings-yj1Bi40R.js";import"./dropdown-menu-BMJk2wEd.js";import"./index-CdqI_8sU.js";import"./index-D7D0WxTK.js";import"./composite-DPoRaMak.js";import"./useRenderElement-D_lHscCc.js";import"./useBaseUiId-Bk33Hj1D.js";import"./useCompositeListItem-BK39sBcw.js";import"./useRole-1rN812y8.js";import"./useButton-CdLwvVYf.js";import"./IconWallet-pzysAyeI.js";import"./IconPlus-CCYPmmtT.js";import"./IconSearch-uAe8PR7i.js";import"./button-1p66Js1j.js";import"./TabBar-Bg6zE3b9.js";import"./swiper-sync-context-SzpgIatr.js";import"./index-BemYHlPk.js";import"./wujie-container-CmLH3CuH.js";import"./index-DqfWNcG6.js";import"./amount-BQsqQYGO.js";import"./web-CwEypqL6.js";import"./window-stack-BtL-ozcQ.js";import"./index-BkWKD4y7.js";import"./notification-Co4MJ0FR.js";import"./transaction-meta-C0fC4A8j.js";import"./IconDots-BbiIX58H.js";import"./IconShieldCheck-BrdP5y_A.js";import"./IconApps-Cg0RoDT5.js";import"./IconCoins-CcJm1zIM.js";import"./IconSparkles-Cp5-Y3fR.js";import"./IconLock-Dgy9iOnO.js";import"./IconTrash-Cuz4NQYa.js";import"./ecosystem-desktop-9c36Qp5Z.js";import"./my-apps-page-BKMvdhJM.js";import"./config-HmZ3kn8E.js";import"./IconDownload-BGaaV_wC.js";import"./proxy-D5jwYLA5.js";import"./IconChevronRight-D9OAcbfN.js";import"./miniapp-splash-screen-BuaCOpMZ.js";import"./sheet-UBK28Lsj.js";import"./IconX-BMRcMVLs.js";import"./IconAlertTriangle-DNhEIuep.js";import"./IconExternalLink-Bb9NgHjS.js";import"./index-DaZTAugz.js";import"./item-CImQ9nfw.js";import"./recover-wallet-form-DFZY8rpw.js";import"./input-CmtROGqp.js";import"./useField-BxAx2kGb.js";import"./IconAlertCircle-Beqnuyo8.js";import"./IconLoader2-D2juXTeB.js";import"./token-item-yQ5oRS7a.js";import"./wallet-selector-nYwaMLgf.js";import"./wallet-mini-card-Cxnyn2hr.js";import"./token-icon-de4jd_f2.js";import"./LoadingSpinner-C2l8LZ79.js";import"./NumberFlow-client-48rw3j0J-Ct2rS8pX.js";import"./amount-display-BQR-FVr2.js";import"./animated-number-dSc8u9RY.js";import"./time-display-C46oP4S7.js";import"./service-status-alert-Jd_yI-IU.js";import"./transaction-list-DJpxq4wv.js";import"./transaction-item-BoHYwyHq.js";import"./IconRefresh-DoLFby2Y.js";import"./swipeable-tabs-DoHRlluG.js";import"./address-input-Cs5l7utK.js";import"./contact-avatar-5bdVnInt.js";import"./IconPencil-CRbHNYiM.js";import"./page-header-D_AGZy-y.js";import"./pattern-lock-tZUxBeSz.js";import"./password-input-D5IK2Rv5.js";import"./IconEyeOff-505jopeh.js";import"./IconEye-Cjg4_Llv.js";import"./fee-display-CtnzJhfh.js";import"./tx-status-display-C57abhBl.js";import"./wallet-list-Ekj2UYRu.js";import"./checkbox-B5ztrbYD.js";import"./asset-selector-DOi3sTGN.js";import"./qr-parser-BLxPSKBT.js";import"./jsQR-CIHsEdVd.js";import"./index-eiH_yjX1.js";import"./scanner-validators-YRGmuXyx.js";import"./contact-card-BDWQNQ_i.js";import"./mnemonic-display-DOIyotCW.js";import"./pattern-lock-setup-DYpc5ns5.js";import"./chain-selector-DBzGYsqC.js";import"./index-DMLlvd8e.js";import"./IconCircleCheck-Bg0po0rL.js";import"./asset-item-CGzWvPR5.js";import"./asset-list-eYfdERjR.js";import"./amount-input-B3TUSQ3y.js";import"./balance-display-CFT-3tJk.js";import"./send-result-C6a5xqsI.js";import"./transaction-status-DtRc7mBi.js";import"./IconBan-B_uvVwPM.js";import"./IconClock-B2y19yrd.js";import"./Trans-Bxw6Pbj-.js";import"./mnemonic-input-BjHPph-C.js";import"./AppInfoCard-Cc25aueD.js";import"./PermissionList-D9CEN_YV.js";import"./TransactionDetails-Vivw-R6e.js";import"./BalanceWarning-DfGCjhf4.js";import"./key-type-selector-CL0n0R6w.js";import"./arbitrary-key-input-UapMNyOJ.js";import"./IconRotateClockwise-BA91sFyx.js";import"./chain-address-preview-Bd9_G55h.js";import"./collision-confirm-dialog-C80Lkvp0.js";import"./IconBell-BCUMPwDA.js";import"./IconCircleX-BNnjiIs8.js";import"./IconShield-GIZucRl5.js";const v=()=>new h({defaultOptions:{queries:{retry:!1,staleTime:0}}}),Lr={title:"Pages/AddressTransactions",component:w,parameters:{layout:"fullscreen"},decorators:[o=>n.jsx(x,{client:v(),children:n.jsx("div",{className:"max-w-md mx-auto min-h-screen bg-background",children:n.jsx(o,{})})})]},e={},i={play:async({canvasElement:o})=>{const t=u(o),m=t.getByRole("combobox");await r.click(m),await c(()=>{l(t.getByText("Ethereum")).toBeVisible()}),await r.click(t.getByText("Ethereum"));const p=t.getByPlaceholderText(/输入地址/i);await r.type(p,"0x75a6F48BF634868b2980c97CcEf467A127597e08");const s=t.getByRole("button",{name:""});await r.click(s),await c(()=>{const d=t.queryByText(/没有交易记录|No transactions/i),y=t.queryByText(/请使用区块浏览器|View on explorer/i),B=t.queryAllByText(/^(From|To):/i);l(d!==null||y!==null||B.length>0).toBe(!0)},{timeout:1e4})}},a={play:async({canvasElement:o})=>{const t=u(o),m=t.getByPlaceholderText(/输入地址/i);await r.type(m,"b1234567890abcdef1234567890abcdef12345678");const p=t.getByRole("button",{name:""});await r.click(p),await c(()=>{const s=t.queryByText(/没有交易记录|From:|To:/i);l(s).not.toBeNull()},{timeout:1e4})}};e.parameters={...e.parameters,docs:{...e.parameters?.docs,source:{originalSource:"{}",...e.parameters?.docs?.source}}};i.parameters={...i.parameters,docs:{...i.parameters?.docs,source:{originalSource:`{
+  play: async ({
+    canvasElement
+  }) => {
+    const canvas = within(canvasElement);
+
+    // 选择 Ethereum 链
+    const chainSelect = canvas.getByRole('combobox');
+    await userEvent.click(chainSelect);
+
+    // 等待下拉菜单出现
+    await waitFor(() => {
+      expect(canvas.getByText('Ethereum')).toBeVisible();
+    });
+    await userEvent.click(canvas.getByText('Ethereum'));
+
+    // 输入地址
+    const addressInput = canvas.getByPlaceholderText(/输入地址/i);
+    await userEvent.type(addressInput, '0x75a6F48BF634868b2980c97CcEf467A127597e08');
+
+    // 点击搜索
+    const searchButton = canvas.getByRole('button', {
+      name: ''
+    }); // Search button has icon only
+    await userEvent.click(searchButton);
+
+    // 等待加载完成
+    await waitFor(() => {
+      // 应该显示结果或"无交易"消息
+      const noTransactions = canvas.queryByText(/没有交易记录|No transactions/i);
+      const useExplorer = canvas.queryByText(/请使用区块浏览器|View on explorer/i);
+      const transactions = canvas.queryAllByText(/^(From|To):/i);
+      expect(noTransactions !== null || useExplorer !== null || transactions.length > 0).toBe(true);
+    }, {
+      timeout: 10000
+    });
+  }
+}`,...i.parameters?.docs?.source}}};a.parameters={...a.parameters,docs:{...a.parameters?.docs,source:{originalSource:`{
+  play: async ({
+    canvasElement
+  }) => {
+    const canvas = within(canvasElement);
+
+    // BFMeta 是默认选中的链，直接输入地址
+    const addressInput = canvas.getByPlaceholderText(/输入地址/i);
+    await userEvent.type(addressInput, 'b1234567890abcdef1234567890abcdef12345678');
+
+    // 点击搜索
+    const searchButton = canvas.getByRole('button', {
+      name: ''
+    });
+    await userEvent.click(searchButton);
+
+    // 等待加载完成
+    await waitFor(() => {
+      // BFMeta 支持交易历史查询
+      const results = canvas.queryByText(/没有交易记录|From:|To:/i);
+      expect(results).not.toBeNull();
+    }, {
+      timeout: 10000
+    });
+  }
+}`,...a.parameters?.docs?.source}}};const Ur=["Default","SearchEthereumAddress","SearchBfmetaAddress"];export{e as Default,a as SearchBfmetaAddress,i as SearchEthereumAddress,Ur as __namedExportsOrder,Lr as default};
