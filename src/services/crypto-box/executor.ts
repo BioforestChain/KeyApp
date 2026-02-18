@@ -18,6 +18,7 @@ import type {
     AsymmetricEncryptParams,
     SignParams,
 } from './types'
+import { CryptoBoxErrorCodes } from './types'
 
 // 导入加密工具
 import {
@@ -141,7 +142,10 @@ class CryptoExecutor {
             if (err instanceof Error && err.message.includes('Address mismatch')) {
                 throw err
             }
-            throw new Error(`Failed to get keypair for wallet ${walletId}: invalid patternKey or wallet not found`)
+            throw Object.assign(
+                new Error('Crypto authorization is invalid. Please re-authorize.'),
+                { code: CryptoBoxErrorCodes.INVALID_SESSION_SECRET }
+            )
         }
     }
 

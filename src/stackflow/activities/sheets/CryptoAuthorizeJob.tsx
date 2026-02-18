@@ -13,7 +13,6 @@ import { useFlow } from '../../stackflow';
 import { ActivityParamsProvider, useActivityParams } from '../../hooks';
 import { MiniappSheetHeader } from '@/components/ecosystem';
 import { PatternLock, patternToString } from '@/components/security/pattern-lock';
-import { walletStorageService } from '@/services/wallet-storage';
 import {
   type CryptoAction,
   type TokenDuration,
@@ -24,6 +23,7 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { walletStore } from '@/stores';
 import { superjson } from '@biochain/chain-effect';
+import { verifyCryptoAuthorizePattern } from './crypto-authorize-pattern';
 
 type CryptoAuthorizeJobParams = {
   /** 请求的操作权限 (superjson 字符串) */
@@ -66,27 +66,8 @@ function CryptoAuthorizeJobContent() {
 
       try {
         const patternKey = patternToString(nodes);
-
-        // 验证手势密码是否正确
-        const wallets = await walletStorageService.getAllWallets();
-        if (wallets.length === 0) {
-          setError(true);
-          setPattern([]);
-          setIsVerifying(false);
-          return;
-        }
-
-        let isValid = false;
-        for (const wallet of wallets) {
-          try {
-            await walletStorageService.getMnemonic(wallet.id, patternKey);
-            isValid = true;
-            break;
-          } catch {
-            // 继续尝试下一个钱包
-          }
-        }
-
+        // 验证手势密码必须匹配当前目标钱包，避免“任意钱包可解锁”导致后续执行失败
+        const isValid = await verifyCryptoAuthorizePattern(walletId, patternKey);
         if (isValid && walletId) {
           // 发送成功事件（包含 walletId 和 selectedDuration 用于 Token 创建）
           const event = new CustomEvent('crypto-authorize-confirm', {
