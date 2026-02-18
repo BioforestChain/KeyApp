@@ -18,8 +18,8 @@
   "author": [
     "@bfmeta.info"
   ],
-  "version": "1.0.7",
-  "change_log": "修复钱包列表链水印映射并在地址前显示链名称",
+  "version": "1.0.8",
+  "change_log": "统一 bioChain 基础域名到 walletapi.bf-meta.org",
   "categories": [
     "application",
     "wallet"
