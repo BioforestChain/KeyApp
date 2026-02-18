@@ -11,6 +11,7 @@
 import { Effect, Duration, Stream, SubscriptionRef, Fiber } from "effect"
 import { Schema as S } from "effect"
 import {
+  httpFetch,
   httpFetchCached,
   createStreamInstanceFromSource,
   createPollingSource,
@@ -31,13 +32,22 @@ import type {
   TxHistoryParams,
   TokenBalancesOutput,
   TokenBalance,
+  FeeEstimate,
+  SignOptions,
+  SignedTransaction,
+  TransactionIntent,
+  TransferIntent,
+  UnsignedTransaction,
 } from "./types"
 import type { ParsedApiEntry } from "@/services/chain-config"
 import { chainConfigService } from "@/services/chain-config/service";
 import { Amount } from "@/types/amount"
+import { ChainErrorCodes, ChainServiceError, type TransactionHash } from "../types"
 import { EvmIdentityMixin } from "../evm/identity-mixin"
 import { EvmTransactionMixin } from "../evm/transaction-mixin"
 import { getWalletEventBus } from "@/services/chain-adapter/wallet-event-bus"
+import { bytesToHex, hexToBytes } from "@noble/hashes/utils.js"
+import { keccak_256 } from "@noble/hashes/sha3.js"
 
 // ==================== Effect Schema 定义 ====================
 
@@ -137,6 +147,32 @@ const TokenListResponseSchema = S.Struct({
 })
 type TokenListResponse = S.Schema.Type<typeof TokenListResponseSchema>
 
+type BscWalletBroadcastDetail = {
+  from: string
+  to: string
+  amount: string
+  fee: string
+  assetSymbol: string
+}
+
+type BscWalletUnsignedPayload = {
+  txData: {
+    nonce: number
+    gasPrice: string
+    gasLimit: string
+    to: string
+    value: string
+    data: string
+    chainId: number
+  }
+  detail: BscWalletBroadcastDetail
+}
+
+type BscWalletSignedPayload = {
+  rawTx: string
+  detail: BscWalletBroadcastDetail
+}
+
 // ==================== 工具函数 ====================
 
 function getDirection(from: string, to: string, address: string): Direction {
@@ -149,6 +185,171 @@ function getDirection(from: string, to: string, address: string): Direction {
 function toRawString(value: string | number | undefined | null): string {
   if (value === undefined || value === null) return "0"
   return String(value)
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null
+}
+
+function parseBigIntValue(value: unknown): bigint | null {
+  if (typeof value === "bigint") return value
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return BigInt(Math.trunc(value))
+  }
+  if (typeof value === "string") {
+    const trimmed = value.trim()
+    if (trimmed.length === 0) return null
+    try {
+      if (trimmed.startsWith("0x") || trimmed.startsWith("0X")) {
+        return BigInt(trimmed)
+      }
+      if (/^-?\d+$/.test(trimmed)) {
+        return BigInt(trimmed)
+      }
+    } catch {
+      return null
+    }
+  }
+  return null
+}
+
+function toHexQuantity(value: bigint): string {
+  if (value === 0n) return "0x0"
+  return `0x${value.toString(16)}`
+}
+
+function toUnsignedPayload(data: unknown): BscWalletUnsignedPayload | null {
+  if (!isRecord(data) || !isRecord(data.txData) || !isRecord(data.detail)) return null
+  const txData = data.txData
+  const detail = data.detail
+  if (
+    typeof txData.nonce !== "number" ||
+    typeof txData.gasPrice !== "string" ||
+    typeof txData.gasLimit !== "string" ||
+    typeof txData.to !== "string" ||
+    typeof txData.value !== "string" ||
+    typeof txData.data !== "string" ||
+    typeof txData.chainId !== "number" ||
+    typeof detail.from !== "string" ||
+    typeof detail.to !== "string" ||
+    typeof detail.amount !== "string" ||
+    typeof detail.fee !== "string" ||
+    typeof detail.assetSymbol !== "string"
+  ) {
+    return null
+  }
+  return data as BscWalletUnsignedPayload
+}
+
+function toSignedPayload(data: unknown): BscWalletSignedPayload {
+  if (typeof data === "string") {
+    return {
+      rawTx: data,
+      detail: {
+        from: "",
+        to: "",
+        amount: "0",
+        fee: "0",
+        assetSymbol: "BNB",
+      },
+    }
+  }
+  if (!isRecord(data) || typeof data.rawTx !== "string" || !isRecord(data.detail)) {
+    throw new ChainServiceError(
+      ChainErrorCodes.TX_BROADCAST_FAILED,
+      "Invalid signed transaction payload",
+      { provider: "bscwallet-v1" },
+    )
+  }
+  const detail = data.detail
+  if (
+    typeof detail.from !== "string" ||
+    typeof detail.to !== "string" ||
+    typeof detail.amount !== "string" ||
+    typeof detail.fee !== "string" ||
+    typeof detail.assetSymbol !== "string"
+  ) {
+    throw new ChainServiceError(
+      ChainErrorCodes.TX_BROADCAST_FAILED,
+      "Invalid broadcast detail payload",
+      { provider: "bscwallet-v1" },
+    )
+  }
+  return data as BscWalletSignedPayload
+}
+
+function decodeHexMessage(value: string): string {
+  const trimmed = value.trim()
+  if (!trimmed) return trimmed
+  const normalized = trimmed.startsWith("0x") ? trimmed.slice(2) : trimmed
+  if (!/^[0-9a-fA-F]+$/.test(normalized) || normalized.length % 2 !== 0) {
+    return trimmed
+  }
+  try {
+    const decoded = new TextDecoder().decode(hexToBytes(normalized)).trim()
+    return decoded || trimmed
+  } catch {
+    return trimmed
+  }
+}
+
+function extractFailureReason(raw: unknown): string {
+  if (!raw) return "Unknown error"
+  if (typeof raw === "string") return decodeHexMessage(raw)
+  if (raw instanceof Error) return decodeHexMessage(raw.message)
+  if (!isRecord(raw)) return String(raw)
+
+  if (isRecord(raw.error)) {
+    const nested = extractFailureReason(raw.error)
+    if (nested) return nested
+  }
+  if (typeof raw.message === "string" && raw.message.trim()) {
+    return decodeHexMessage(raw.message)
+  }
+  if (typeof raw.info === "string" && raw.info.trim()) {
+    return decodeHexMessage(raw.info)
+  }
+  if (typeof raw.reason === "string" && raw.reason.trim()) {
+    return decodeHexMessage(raw.reason)
+  }
+  if (typeof raw.code === "string" && raw.code.trim()) {
+    return decodeHexMessage(raw.code)
+  }
+  return "Unknown error"
+}
+
+function isBroadcastSuccess(raw: unknown): boolean {
+  if (raw === true) return true
+  if (isRecord(raw)) {
+    if (raw.success === true || raw.result === true || raw.status === "success") {
+      return true
+    }
+    if (typeof raw.txHash === "string" && raw.txHash.length > 0) return true
+    if (typeof raw.hash === "string" && raw.hash.length > 0) return true
+    if (typeof raw.txid === "string" && raw.txid.length > 0) return true
+  }
+  return false
+}
+
+function getBroadcastTxHash(raw: unknown): string | null {
+  if (!isRecord(raw)) return null
+  if (typeof raw.txHash === "string" && raw.txHash.length > 0) return raw.txHash
+  if (typeof raw.hash === "string" && raw.hash.length > 0) return raw.hash
+  if (typeof raw.txid === "string" && raw.txid.length > 0) return raw.txid
+  if (isRecord(raw.result) && typeof raw.result.txHash === "string" && raw.result.txHash.length > 0) {
+    return raw.result.txHash
+  }
+  return null
+}
+
+function hashSignedTransaction(rawTx: string): string {
+  const normalized = rawTx.startsWith("0x") ? rawTx.slice(2) : rawTx
+  return `0x${bytesToHex(keccak_256(hexToBytes(normalized)))}`
+}
+
+function isTimeoutError(error: unknown): boolean {
+  if (!(error instanceof Error)) return false
+  return /timeout|timed out|etimedout|aborterror|aborted/i.test(error.message)
 }
 
 function normalizeBalance(raw: BalanceRaw): { success: boolean; amount: string } {
@@ -325,6 +526,8 @@ export class BscWalletProviderEffect extends EvmIdentityMixin(EvmTransactionMixi
   private readonly pollingInterval: number = 30000
   private readonly balanceCacheTtlMs: number = 5000
   private readonly tokenListCacheTtl: number = 10 * 60 * 1000
+  private readonly txTimeoutMs: number = 30_000
+  private readonly defaultGasPrice: bigint = 3_000_000_000n
   private _normalHistoryDisabled = false
 
   private _eventBus: EventBusService | null = null
@@ -388,6 +591,343 @@ export class BscWalletProviderEffect extends EvmIdentityMixin(EvmTransactionMixi
       `bscwallet.${chainId}.tokenBalances`,
       (params) => provider.createTokenBalancesSource(params)
     )
+  }
+
+  override async buildTransaction(intent: TransactionIntent): Promise<UnsignedTransaction> {
+    if (intent.type !== "transfer") {
+      throw new ChainServiceError(
+        ChainErrorCodes.NOT_SUPPORTED,
+        `Transaction type not supported: ${intent.type}`,
+        { provider: this.type },
+      )
+    }
+
+    const transferIntent = intent as TransferIntent
+    const isTokenTransfer = typeof transferIntent.tokenAddress === "string" && transferIntent.tokenAddress.trim().length > 0
+    const tokenAddress = transferIntent.tokenAddress?.trim().toLowerCase()
+
+    try {
+      const prepInfo = await this.fetchPrepInfo({
+        from: transferIntent.from,
+        to: transferIntent.to,
+        amount: transferIntent.amount.toRawString(),
+        isTokenTransfer,
+        tokenAddress,
+      })
+
+      const nonce = prepInfo.txCount ?? await this.fetchNonce(transferIntent.from)
+      const gasPrice = prepInfo.gasPrice ?? await this.fetchGasPrice()
+      const gasLimit = prepInfo.gasLimit
+      const chainId = this.resolveChainId()
+
+      if (!Number.isSafeInteger(nonce) || nonce < 0) {
+        throw new Error(`Invalid nonce from walletapi: ${nonce}`)
+      }
+
+      let to = transferIntent.to
+      let value = toHexQuantity(transferIntent.amount.raw)
+      let data = "0x"
+
+      if (isTokenTransfer && tokenAddress) {
+        const contractData = await this.fetchContractTransferData({
+          from: transferIntent.from,
+          to: transferIntent.to,
+          amount: transferIntent.amount.toRawString(),
+          contractAddress: tokenAddress,
+        })
+        to = tokenAddress
+        value = "0x0"
+        data = contractData
+      }
+
+      const txData = {
+        nonce,
+        gasPrice: toHexQuantity(gasPrice),
+        gasLimit: toHexQuantity(gasLimit),
+        to,
+        value,
+        data,
+        chainId,
+      }
+      const feeRaw = (gasPrice * gasLimit).toString()
+      const detail: BscWalletBroadcastDetail = {
+        from: transferIntent.from,
+        to: transferIntent.to,
+        amount: transferIntent.amount.toRawString(),
+        fee: feeRaw,
+        assetSymbol: transferIntent.amount.symbol || this.symbol,
+      }
+
+      return {
+        chainId: this.chainId,
+        intentType: "transfer",
+        data: {
+          txData,
+          detail,
+        } satisfies BscWalletUnsignedPayload,
+      }
+    } catch (error) {
+      if (error instanceof ChainServiceError) {
+        throw error
+      }
+
+      const reason = extractFailureReason(error)
+      throw new ChainServiceError(
+        ChainErrorCodes.TX_BUILD_FAILED,
+        `BSC transaction build failed: ${reason}`,
+        { provider: this.type, reason },
+        error instanceof Error ? error : undefined,
+      )
+    }
+  }
+
+  override async estimateFee(unsignedTx: UnsignedTransaction): Promise<FeeEstimate> {
+    const payload = toUnsignedPayload(unsignedTx.data)
+    if (!payload) {
+      return super.estimateFee(unsignedTx)
+    }
+
+    const feeRaw = parseBigIntValue(payload.detail.fee)
+    if (feeRaw === null || feeRaw < 0n) {
+      throw new ChainServiceError(
+        ChainErrorCodes.TX_BUILD_FAILED,
+        "Invalid fee in BSC transaction payload",
+        { provider: this.type, fee: payload.detail.fee },
+      )
+    }
+
+    const slow = Amount.fromRaw(((feeRaw * 80n) / 100n).toString(), this.decimals, this.symbol)
+    const standard = Amount.fromRaw(feeRaw.toString(), this.decimals, this.symbol)
+    const fast = Amount.fromRaw(((feeRaw * 120n) / 100n).toString(), this.decimals, this.symbol)
+
+    return {
+      slow: { amount: slow, estimatedTime: 30 },
+      standard: { amount: standard, estimatedTime: 12 },
+      fast: { amount: fast, estimatedTime: 6 },
+    }
+  }
+
+  override async signTransaction(unsignedTx: UnsignedTransaction, options: SignOptions): Promise<SignedTransaction> {
+    const payload = toUnsignedPayload(unsignedTx.data)
+    if (!payload) {
+      return super.signTransaction(unsignedTx, options)
+    }
+
+    const signed = await super.signTransaction(
+      {
+        ...unsignedTx,
+        data: payload.txData,
+      },
+      options,
+    )
+
+    if (typeof signed.data !== "string") {
+      throw new ChainServiceError(
+        ChainErrorCodes.SIGNATURE_FAILED,
+        "Invalid signed payload for BSC transaction",
+        { provider: this.type },
+      )
+    }
+
+    return {
+      chainId: signed.chainId,
+      data: {
+        rawTx: signed.data,
+        detail: payload.detail,
+      } satisfies BscWalletSignedPayload,
+      signature: signed.signature,
+    }
+  }
+
+  override async broadcastTransaction(signedTx: SignedTransaction): Promise<TransactionHash> {
+    if (typeof signedTx.data === "string") {
+      return super.broadcastTransaction(signedTx)
+    }
+
+    const payload = toSignedPayload(signedTx.data)
+    try {
+      const response = await this.runWithTimeout(
+        Effect.runPromise(
+          httpFetch({
+            url: `${this.baseUrl}/trans/send`,
+            method: "POST",
+            body: {
+              signTransData: payload.rawTx,
+              detail: payload.detail,
+            },
+          })
+        ),
+        this.txTimeoutMs,
+      )
+
+      if (!isBroadcastSuccess(response)) {
+        const reason = extractFailureReason(response)
+        throw new ChainServiceError(
+          ChainErrorCodes.TX_BROADCAST_FAILED,
+          `Broadcast failed: ${reason}`,
+          isRecord(response)
+            ? { provider: this.type, reason, response }
+            : { provider: this.type, reason },
+        )
+      }
+
+      return getBroadcastTxHash(response) ?? hashSignedTransaction(payload.rawTx)
+    } catch (error) {
+      if (error instanceof ChainServiceError) {
+        throw error
+      }
+
+      if (isTimeoutError(error)) {
+        throw new ChainServiceError(
+          ChainErrorCodes.TRANSACTION_TIMEOUT,
+          "BSC transaction broadcast timeout",
+          { provider: this.type },
+          error instanceof Error ? error : undefined,
+        )
+      }
+
+      const reason = extractFailureReason(error)
+      throw new ChainServiceError(
+        ChainErrorCodes.TX_BROADCAST_FAILED,
+        `Broadcast failed: ${reason}`,
+        { provider: this.type, reason },
+        error instanceof Error ? error : undefined,
+      )
+    }
+  }
+
+  private resolveChainId(): number {
+    const configured = parseBigIntValue(
+      this.config && isRecord(this.config)
+        ? this.config.chainId ?? this.config.evmChainId
+        : undefined,
+    )
+
+    if (configured !== null && configured > 0n && configured <= BigInt(Number.MAX_SAFE_INTEGER)) {
+      return Number(configured)
+    }
+
+    return 56
+  }
+
+  private async fetchPrepInfo(input: {
+    from: string
+    to: string
+    amount: string
+    isTokenTransfer: boolean
+    tokenAddress?: string
+  }): Promise<{ txCount: number | null; gasPrice: bigint | null; gasLimit: bigint }> {
+    const raw = await Effect.runPromise(
+      httpFetch({
+        url: `${this.baseUrl}/trans/prep`,
+        method: "POST",
+        body: {
+          from: input.from,
+          to: input.to,
+          amount: input.amount,
+          type: input.isTokenTransfer ? 2 : 1,
+          ...(input.tokenAddress ? { contractAddress: input.tokenAddress } : {}),
+        },
+      })
+    )
+
+    const source = isRecord(raw) && isRecord(raw.result) ? raw.result : raw
+    if (!isRecord(source)) {
+      throw new Error("Invalid prep response")
+    }
+
+    const txCountRaw = parseBigIntValue(source.txCount)
+    const gasPriceRaw = parseBigIntValue(source.gasPrice)
+    const contractGasRaw = parseBigIntValue(source.contractGas)
+    const generalGasRaw = parseBigIntValue(source.generalGas)
+
+    const gasLimit = input.isTokenTransfer
+      ? (contractGasRaw ?? 150_000n)
+      : (generalGasRaw ?? 21_000n)
+
+    return {
+      txCount: txCountRaw === null ? null : Number(txCountRaw),
+      gasPrice: gasPriceRaw,
+      gasLimit,
+    }
+  }
+
+  private async fetchNonce(address: string): Promise<number> {
+    const raw = await Effect.runPromise(
+      httpFetch({
+        url: `${this.baseUrl}/trans/count?address=${encodeURIComponent(address)}`,
+      })
+    )
+    const source = isRecord(raw) && raw.result !== undefined ? raw.result : raw
+    const nonceRaw = parseBigIntValue(source)
+    if (nonceRaw === null || nonceRaw < 0n || nonceRaw > BigInt(Number.MAX_SAFE_INTEGER)) {
+      throw new Error(`Invalid nonce response: ${String(source)}`)
+    }
+    return Number(nonceRaw)
+  }
+
+  private async fetchGasPrice(): Promise<bigint> {
+    try {
+      const raw = await Effect.runPromise(
+        httpFetch({
+          url: `${this.baseUrl}/gasPrice`,
+        })
+      )
+      const source = isRecord(raw) && raw.result !== undefined ? raw.result : raw
+      const gasPrice = parseBigIntValue(source)
+      if (gasPrice !== null && gasPrice > 0n) {
+        return gasPrice
+      }
+    } catch {
+      // fallback
+    }
+    return this.defaultGasPrice
+  }
+
+  private async fetchContractTransferData(input: {
+    from: string
+    to: string
+    amount: string
+    contractAddress: string
+  }): Promise<string> {
+    const raw = await Effect.runPromise(
+      httpFetch({
+        url: `${this.baseUrl}/trans/bep20/data`,
+        method: "POST",
+        body: {
+          from: input.from,
+          to: input.to,
+          amount: input.amount,
+          contractAddress: input.contractAddress,
+        },
+      })
+    )
+
+    const source = isRecord(raw) && raw.result !== undefined ? raw.result : raw
+    if (typeof source !== "string" || source.trim().length === 0) {
+      throw new Error(`Invalid bep20 transaction data: ${String(source)}`)
+    }
+    const normalized = source.trim()
+    return normalized.startsWith("0x") ? normalized : `0x${normalized}`
+  }
+
+  private async runWithTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T> {
+    return await new Promise<T>((resolve, reject) => {
+      const timer = setTimeout(() => {
+        reject(new Error("Request timeout"))
+      }, timeoutMs)
+
+      void promise.then(
+        (value) => {
+          clearTimeout(timer)
+          resolve(value)
+        },
+        (error) => {
+          clearTimeout(timer)
+          reject(error)
+        }
+      )
+    })
   }
 
   private createTransactionHistorySource(
