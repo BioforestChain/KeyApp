@@ -30,13 +30,16 @@ vi.mock('@/services/chain-adapter/providers', async () => {
   };
 });
 
-import { submitWeb3Transfer } from './use-send.web3';
+import { fetchWeb3Fee, submitWeb3Transfer } from './use-send.web3';
 
 type MockChainProvider = {
   supportsFullTransaction: boolean;
+  supportsBuildTransaction?: boolean;
+  supportsFeeEstimate?: boolean;
   buildTransaction: (intent: unknown) => Promise<unknown>;
   signTransaction: (unsignedTx: unknown, options: { privateKey: Uint8Array }) => Promise<unknown>;
   broadcastTransaction: (signedTx: unknown) => Promise<string>;
+  estimateFee?: (unsignedTx: unknown) => Promise<{ standard: { amount: Amount } }>;
 };
 
 function createChainConfig(): ChainConfig {
@@ -150,5 +153,61 @@ describe('submitWeb3Transfer', () => {
     });
 
     expect(result).toEqual({ status: 'ok', txHash: 'tx-hash' });
+  });
+
+  it('passes tokenAddress to buildTransaction', async () => {
+    const provider = createMockProvider();
+    mockGetChainProvider.mockReturnValue(provider);
+
+    await submitWeb3Transfer({
+      chainConfig: createChainConfig(),
+      walletId: 'wallet-1',
+      password: 'pwd',
+      fromAddress: 'TFromAddress',
+      toAddress: 'TToAddress',
+      amount: Amount.fromRaw('1000000', 6, 'USDT'),
+      tokenAddress: 'TTokenContract',
+    });
+
+    expect(provider.buildTransaction).toHaveBeenCalledWith(
+      expect.objectContaining({
+        tokenAddress: 'TTokenContract',
+      }),
+    );
+  });
+});
+
+describe('fetchWeb3Fee', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('passes tokenAddress to buildTransaction', async () => {
+    const provider: MockChainProvider = createMockProvider({
+      supportsFullTransaction: true,
+      supportsFeeEstimate: true,
+      supportsBuildTransaction: true,
+      buildTransaction: vi.fn(async () => ({ data: { txID: 'mock-tx' } })),
+      estimateFee: vi.fn(async () => ({
+        standard: { amount: Amount.fromRaw('1000', 6, 'TRX') },
+      })),
+    });
+
+    mockGetChainProvider.mockReturnValue(provider);
+
+    const result = await fetchWeb3Fee({
+      chainConfig: createChainConfig(),
+      fromAddress: 'TFromAddress',
+      toAddress: 'TToAddress',
+      amount: Amount.fromRaw('1000000', 6, 'USDT'),
+      tokenAddress: 'TTokenContract',
+    });
+
+    expect(provider.buildTransaction).toHaveBeenCalledWith(
+      expect.objectContaining({
+        tokenAddress: 'TTokenContract',
+      }),
+    );
+    expect(result.amount.toRawString()).toBe('1000');
   });
 });

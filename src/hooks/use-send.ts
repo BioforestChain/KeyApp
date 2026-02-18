@@ -153,6 +153,7 @@ export function useSend(options: UseSendOptions = {}): UseSendReturn {
                   fromAddress,
                   toAddress,
                   amount: state.amount ?? undefined,
+                  tokenAddress: state.asset?.contractAddress,
                 })
               : await fetchBioforestFee(chainConfig!, fromAddress!);
 
@@ -327,6 +328,7 @@ export function useSend(options: UseSendOptions = {}): UseSendReturn {
           fromAddress,
           toAddress: state.toAddress,
           amount: state.amount,
+          tokenAddress: state.asset.contractAddress,
         });
 
         if (result.status === 'password') {

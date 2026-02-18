@@ -131,9 +131,16 @@ export interface FetchWeb3FeeParams {
   fromAddress: string;
   toAddress: string;
   amount?: Amount | undefined;
+  tokenAddress?: string | undefined;
 }
 
-export async function fetchWeb3Fee({ chainConfig, fromAddress, toAddress, amount }: FetchWeb3FeeParams): Promise<Web3FeeResult> {
+export async function fetchWeb3Fee({
+  chainConfig,
+  fromAddress,
+  toAddress,
+  amount,
+  tokenAddress,
+}: FetchWeb3FeeParams): Promise<Web3FeeResult> {
   const chainProvider = getChainProvider(chainConfig.id);
 
   if (!chainProvider.supportsFeeEstimate || !chainProvider.supportsBuildTransaction) {
@@ -151,6 +158,7 @@ export async function fetchWeb3Fee({ chainConfig, fromAddress, toAddress, amount
     from: fromAddress,
     to: toAddress,
     amount: estimateAmount,
+    tokenAddress,
   });
 
   const feeEstimate = await chainProvider.estimateFee!(unsignedTx);
@@ -185,6 +193,7 @@ export interface SubmitWeb3Params {
   fromAddress: string;
   toAddress: string;
   amount: Amount;
+  tokenAddress?: string | undefined;
 }
 
 export async function submitWeb3Transfer({
@@ -194,6 +203,7 @@ export async function submitWeb3Transfer({
   fromAddress,
   toAddress,
   amount,
+  tokenAddress,
 }: SubmitWeb3Params): Promise<SubmitWeb3Result> {
   // Get mnemonic from wallet storage
   let secret: string;
@@ -228,6 +238,7 @@ export async function submitWeb3Transfer({
       from: fromAddress,
       to: toAddress,
       amount,
+      tokenAddress,
     });
 
     // Sign transaction
