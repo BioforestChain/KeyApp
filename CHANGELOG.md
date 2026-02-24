@@ -1,5 +1,11 @@
 # 更新日志
 
+## [1.0.9] - 2026-02-24
+
+fix teleport transfer sign flow and balance rendering
+
+<!-- last-commit: cef9b486423676a53a32f2c34e5bfa168961cfb5 -->
+
 ## [1.0.8] - 2026-02-18
 
 统一 bioChain 基础域名到 walletapi.bf-meta.org

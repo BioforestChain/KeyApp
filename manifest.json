@@ -18,8 +18,8 @@
   "author": [
     "@bfmeta.info"
   ],
-  "version": "1.0.8",
-  "change_log": "统一 bioChain 基础域名到 walletapi.bf-meta.org",
+  "version": "1.0.9",
+  "change_log": "fix teleport transfer sign flow and balance rendering",
   "categories": [
     "application",
     "wallet"
