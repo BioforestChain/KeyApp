@@ -35,7 +35,7 @@ const snapshotHeightSchema = z.preprocess((value) => {
 
 const transmitSupportSchema = z.object({
   enable: z.boolean(),
-  isAirdrop: z.boolean(),
+  isAirdrop: z.boolean().optional().default(false),
   assetType: z.string(),
   recipientAddress: z.string(),
   targetChain: internalChainNameSchema,

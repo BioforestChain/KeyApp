@@ -18,13 +18,17 @@ import { MiniappSheetHeader } from '@/components/ecosystem';
 import { ChainBadge } from '@/components/wallet/chain-icon';
 import { PatternLock, patternToString } from '@/components/security/pattern-lock';
 import { PasswordInput } from '@/components/security/password-input';
+import { Input } from '@/components/ui/input';
 import { getChainProvider } from '@/services/chain-adapter/providers';
 import { signUnsignedTransaction } from '@/services/ecosystem/handlers';
 import { chainConfigService } from '@/services/chain-config/service';
 import { useToast } from '@/services';
+import { superjson } from '@biochain/chain-effect';
+import { Amount } from '@/types/amount';
 import { findMiniappWalletIdByAddress, resolveMiniappChainId } from './miniapp-wallet';
 import { createMiniappUnsupportedPipelineError, mapMiniappTransferErrorToMessage } from './miniapp-transfer-error';
 import { parseMiniappTransferAmountRaw } from './miniapp-transfer-amount';
+import type { SignedTransaction, UnsignedTransaction } from '@/services/ecosystem';
 import {
   isMiniappWalletLockError,
   isMiniappTwoStepSecretError,
@@ -40,6 +44,8 @@ import {
 type MiniappTransferConfirmJobParams = {
   /** 请求标识（用于 FIFO 事件隔离） */
   requestId?: string;
+  /** 处理模式（默认 send） */
+  mode?: 'send' | 'sign';
   /** 来源小程序名称 */
   appName: string;
   /** 来源小程序图标 */
@@ -56,6 +62,8 @@ type MiniappTransferConfirmJobParams = {
   asset?: string;
   /** 业务备注（透传到交易体） */
   remark?: Record<string, string>;
+  /** sign 模式下使用的未签名交易（superjson 字符串） */
+  unsignedTx?: string;
 };
 
 type TransferStep = MiniappTransferFlowStep;
@@ -68,6 +76,7 @@ type MiniappTransferResultDetail = {
   txHash?: string;
   txId?: string;
   transaction?: Record<string, unknown>;
+  signedTx?: SignedTransaction;
 };
 
 type MiniappTransferSheetClosedDetail = {
@@ -103,6 +112,38 @@ function cloneTransactionRecord(record: Record<string, unknown>): Record<string,
   return { ...record };
 }
 
+function parseAmountLike(value: unknown): Amount | null {
+  if (value instanceof Amount) {
+    return value;
+  }
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  const rawValue = value.raw;
+  const decimalsValue = value.decimals;
+  const symbolValue = value.symbol;
+
+  const raw =
+    typeof rawValue === 'string'
+      ? rawValue
+      : typeof rawValue === 'number'
+        ? String(rawValue)
+        : null;
+  const decimals = typeof decimalsValue === 'number' ? decimalsValue : null;
+  const symbol = typeof symbolValue === 'string' ? symbolValue : undefined;
+
+  if (!raw || decimals === null || !/^-?\d+$/.test(raw)) {
+    return null;
+  }
+
+  try {
+    return Amount.fromRaw(raw, decimals, symbol);
+  } catch {
+    return null;
+  }
+}
+
 const SUCCESS_CLOSE_SECONDS = 3;
 const pendingUnmountSettleTimers = new Map<string, number>();
 
@@ -111,9 +152,10 @@ function MiniappTransferConfirmJobContent() {
   const { pop } = useFlow();
   const toast = useToast();
   const params = useActivityParams<MiniappTransferConfirmJobParams>();
-  const { requestId, appName, appIcon, from, to, amount, chain, asset, remark } = params;
+  const { requestId, mode, appName, appIcon, from, to, amount, chain, asset, remark, unsignedTx: unsignedTxJson } = params;
   const fallbackRequestIdRef = useRef(requestId ?? `legacy-transfer-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`);
   const effectiveRequestId = fallbackRequestIdRef.current;
+  const isSignMode = mode === 'sign';
 
   const [step, setStep] = useState<TransferStep>('review');
   const [pattern, setPattern] = useState<number[]>([]);
@@ -125,6 +167,11 @@ function MiniappTransferConfirmJobContent() {
   const [successCountdown, setSuccessCountdown] = useState<number | null>(null);
   const [requiresTwoStepSecret, setRequiresTwoStepSecret] = useState(false);
   const [isResolvingTwoStepSecret, setIsResolvingTwoStepSecret] = useState(true);
+  const [feeInput, setFeeInput] = useState('');
+  const [feeSymbol, setFeeSymbol] = useState('');
+  const [feeDecimals, setFeeDecimals] = useState(0);
+  const [isFeeEstimating, setIsFeeEstimating] = useState(false);
+  const [feeEstimateError, setFeeEstimateError] = useState<string | null>(null);
 
   const isMountedRef = useRef(true);
   const isBackgroundBroadcastRef = useRef(false);
@@ -146,6 +193,10 @@ function MiniappTransferConfirmJobContent() {
     return chainSymbol || resolvedChainId.toUpperCase();
   }, [asset, resolvedChainId]);
   const displayDecimals = useMemo(() => chainConfigService.getDecimals(resolvedChainId), [resolvedChainId]);
+  const chainSymbol = useMemo(
+    () => chainConfigService.getSymbol(resolvedChainId) || resolvedChainId.toUpperCase(),
+    [resolvedChainId],
+  );
 
   const parsedAmount = useMemo(() => {
     try {
@@ -154,6 +205,29 @@ function MiniappTransferConfirmJobContent() {
       return null;
     }
   }, [amount, displayDecimals, displayAsset]);
+  const providedUnsignedTx = useMemo(() => {
+    if (!isSignMode || !unsignedTxJson) {
+      return null;
+    }
+
+    try {
+      return superjson.parse<UnsignedTransaction>(unsignedTxJson);
+    } catch {
+      return null;
+    }
+  }, [isSignMode, unsignedTxJson]);
+  const parsedFeeAmount = useMemo(() => {
+    if (!isSignMode) {
+      return null;
+    }
+
+    const feeText = feeInput.trim();
+    if (feeText.length === 0) {
+      return null;
+    }
+
+    return Amount.tryFromFormatted(feeText, feeDecimals, feeSymbol) ?? null;
+  }, [feeDecimals, feeInput, feeSymbol, isSignMode]);
 
   const displayAmount = useMemo(() => parsedAmount?.toFormatted({ trimTrailingZeros: false }) ?? amount, [parsedAmount, amount]);
   const amountInvalidMessage = useMemo(
@@ -181,6 +255,7 @@ function MiniappTransferConfirmJobContent() {
   const isBroadcasting = phase === 'broadcasting';
   const isSuccess = phase === 'success';
   const isBusy = phase === 'building' || phase === 'broadcasting';
+  const feeInputInvalid = isSignMode && feeInput.trim().length > 0 && !parsedFeeAmount;
 
   const logTransferSheet = useCallback(
     (stage: string, payload: Record<string, unknown> = {}) => {
@@ -218,6 +293,7 @@ function MiniappTransferConfirmJobContent() {
       from,
       to,
       amount,
+      mode: isSignMode ? 'sign' : 'send',
       asset: asset ?? 'native',
     });
 
@@ -269,7 +345,66 @@ function MiniappTransferConfirmJobContent() {
 
       pendingUnmountSettleTimers.set(effectiveRequestId, settleTimer);
     };
-  }, [amount, asset, effectiveRequestId, from, logTransferSheet, requestId, to]);
+  }, [amount, asset, effectiveRequestId, from, isSignMode, logTransferSheet, requestId, to]);
+
+  useEffect(() => {
+    if (!isSignMode || !providedUnsignedTx) {
+      return;
+    }
+
+    let cancelled = false;
+    const existingFee = parseAmountLike((providedUnsignedTx as { estimatedFee?: unknown }).estimatedFee);
+    if (existingFee) {
+      setFeeSymbol(existingFee.symbol || chainSymbol);
+      setFeeDecimals(existingFee.decimals);
+      setFeeInput(existingFee.toFormatted({ trimTrailingZeros: false }));
+      setFeeEstimateError(null);
+      setIsFeeEstimating(false);
+      return;
+    }
+
+    const provider = getChainProvider(resolvedChainId);
+    const estimateFee = provider.estimateFee;
+    if (!estimateFee) {
+      setFeeSymbol(chainSymbol);
+      setFeeDecimals(displayDecimals);
+      setFeeEstimateError(t('transaction:sendPage.feeUnavailable'));
+      setIsFeeEstimating(false);
+      return;
+    }
+
+    setFeeSymbol(chainSymbol);
+    setFeeDecimals(displayDecimals);
+    setFeeEstimateError(null);
+    setIsFeeEstimating(true);
+
+    void estimateFee(providedUnsignedTx)
+      .then((feeEstimate) => {
+        if (cancelled) {
+          return;
+        }
+        const standardFee = feeEstimate.standard.amount;
+        setFeeSymbol(standardFee.symbol || chainSymbol);
+        setFeeDecimals(standardFee.decimals);
+        setFeeInput(standardFee.toFormatted({ trimTrailingZeros: false }));
+      })
+      .catch(() => {
+        if (cancelled) {
+          return;
+        }
+        setFeeEstimateError(t('transaction:sendPage.feeUnavailable'));
+      })
+      .finally(() => {
+        if (cancelled) {
+          return;
+        }
+        setIsFeeEstimating(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [chainSymbol, displayDecimals, isSignMode, providedUnsignedTx, resolvedChainId, t]);
 
   useEffect(() => {
     let mounted = true;
@@ -310,6 +445,7 @@ function MiniappTransferConfirmJobContent() {
       confirmed: payload.confirmed,
       hasTxHash: Boolean(payload.txHash),
       hasTransaction: Boolean(payload.transaction),
+      hasSignedTx: Boolean(payload.signedTx),
       txId: payload.txId,
     });
 
@@ -424,6 +560,34 @@ function MiniappTransferConfirmJobContent() {
         throw new Error('missing walletId');
       }
 
+      if (isSignMode) {
+        if (!providedUnsignedTx) {
+          throw new Error('Missing unsigned transaction payload');
+        }
+
+        const unsignedTxForSign: UnsignedTransaction = parsedFeeAmount
+          ? {
+              ...providedUnsignedTx,
+              estimatedFee: parsedFeeAmount,
+            }
+          : providedUnsignedTx;
+
+        const signedTx = await signUnsignedTransaction({
+          walletId,
+          password,
+          from,
+          chainId: resolvedChainId,
+          unsignedTx: unsignedTxForSign,
+          ...(paySecret ? { paySecret } : {}),
+        });
+
+        const transaction = isRecord(signedTx.data)
+          ? cloneTransactionRecord(signedTx.data)
+          : { data: signedTx.data };
+
+        return { signedTx, transaction };
+      }
+
       const provider = getChainProvider(resolvedChainId);
       if (
         !provider.supportsFullTransaction ||
@@ -475,7 +639,7 @@ function MiniappTransferConfirmJobContent() {
 
       return { txHash, transaction };
     },
-    [resolvedChainId, parsedAmount, asset, from, to, walletId, remark],
+    [isSignMode, parsedFeeAmount, providedUnsignedTx, resolvedChainId, parsedAmount, asset, from, to, walletId, remark],
   );
 
   const handleTransferFailure = useCallback(
@@ -554,9 +718,30 @@ function MiniappTransferConfirmJobContent() {
       setErrorMessage(null);
 
       try {
-        const { txHash, transaction } = await performTransfer(password, paySecret);
+        const result = await performTransfer(password, paySecret);
         transferSucceeded = true;
-        logTransferSheet('transfer.broadcast.success', { txHash });
+        const signedTx = result.signedTx;
+        const txHash = result.txHash;
+        const transaction = result.transaction;
+        logTransferSheet(isSignMode ? 'transfer.sign.success' : 'transfer.broadcast.success', {
+          hasSignedTx: Boolean(signedTx),
+          txHash,
+        });
+
+        if (signedTx) {
+          emitTransferResult({
+            confirmed: true,
+            signedTx,
+            transaction,
+          });
+          emitSheetClosed('confirmed');
+          pop();
+          return;
+        }
+
+        if (!txHash) {
+          throw new Error('Missing txHash in transfer result');
+        }
 
         if (isBackgroundBroadcastRef.current || !isMountedRef.current) {
           void toast.show(
@@ -600,7 +785,7 @@ function MiniappTransferConfirmJobContent() {
         }
       }
     },
-    [emitTransferResult, handleTransferFailure, logTransferSheet, performTransfer, t, toast, transferShortTitle],
+    [emitSheetClosed, emitTransferResult, handleTransferFailure, isSignMode, logTransferSheet, performTransfer, pop, t, toast, transferShortTitle],
   );
 
   const handlePatternComplete = useCallback(
@@ -745,6 +930,30 @@ function MiniappTransferConfirmJobContent() {
                 <ChainBadge chainId={resolvedChainId} />
               </div>
 
+              {isSignMode && (
+                <div className="bg-muted/50 space-y-2 rounded-xl p-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground text-sm">{t('transaction:sendPage.fee')}</span>
+                    <span className="text-muted-foreground text-xs">{feeSymbol || chainSymbol}</span>
+                  </div>
+                  <Input
+                    data-testid="miniapp-transfer-sign-fee-input"
+                    value={feeInput}
+                    onChange={(event) => setFeeInput(event.target.value)}
+                    disabled={isBusy || isFeeEstimating}
+                    placeholder={t('transaction:sendPage.feePending')}
+                    inputMode="decimal"
+                  />
+                  {isFeeEstimating && (
+                    <div className="text-muted-foreground text-xs">{t('transaction:sendPage.feeEstimating')}</div>
+                  )}
+                  {feeEstimateError && <div className="text-destructive text-xs">{feeEstimateError}</div>}
+                  {feeInputInvalid && !feeEstimateError && (
+                    <div className="text-destructive text-xs">{t('transaction:feeEdit.invalidFee')}</div>
+                  )}
+                </div>
+              )}
+
               {remarkEntries.length > 0 && (
                 <div data-testid="miniapp-transfer-remark" className="bg-muted/50 space-y-2 rounded-xl p-3">
                   <span className="text-muted-foreground text-xs">{t('memo')}</span>
@@ -782,7 +991,7 @@ function MiniappTransferConfirmJobContent() {
               <button
                 data-testid="miniapp-transfer-review-confirm"
                 onClick={handleEnterWalletLockStep}
-                disabled={isBusy || !walletId || isResolvingTwoStepSecret || !parsedAmount}
+                disabled={isBusy || !walletId || isResolvingTwoStepSecret || !parsedAmount || (isSignMode && (isFeeEstimating || !parsedFeeAmount))}
                 className={cn(
                   'flex-1 rounded-xl py-3 font-medium transition-colors',
                   'bg-primary text-primary-foreground hover:bg-primary/90',

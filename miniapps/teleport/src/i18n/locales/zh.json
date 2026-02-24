@@ -11,7 +11,11 @@
   },
   "connect": {
     "button": "启动传送门",
+    "buttonWithChain": "启动 {{chain}} 传送门",
+    "buttonWithChainDisabled": "{{chain}} 传送门未启用",
+    "selectChain": "请选择传送链",
     "loading": "连接中...",
+    "loadingWithChain": "连接 {{chain}} 中...",
     "loadingConfig": "加载配置中...",
     "configError": "加载配置失败，请刷新重试"
   },
@@ -19,6 +23,7 @@
     "select": "选择资产",
     "selectDesc": "BFM 生态基金会社区代币兑换",
     "balance": "可用",
+    "disabled": "未启用",
     "noAssets": "当前链暂无可传送资产",
     "transfer": "{{from}} → {{to}}",
     "exchangeTo": "兑换为 {{target}}（{{chain}}）",
@@ -68,6 +73,7 @@
   },
   "success": {
     "title": "传送成功",
+    "pendingPost": "奖励发放中，可稍后在记录中查看",
     "sentTo": "已发送至目标钱包",
     "newTransfer": "发起新传送"
   },

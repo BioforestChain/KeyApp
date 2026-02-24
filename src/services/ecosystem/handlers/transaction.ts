@@ -17,6 +17,7 @@ import { deriveKey } from '@/lib/crypto/derivation'
 import { createBioforestKeypair, publicKeyToBioforestAddress } from '@/lib/crypto'
 import { normalizeTronAddress } from '@/services/chain-adapter/tron/address'
 import { parseRawAmount } from '../raw-amount'
+import { Amount } from '@/types/amount'
 
 function findWalletIdByAddress(chainId: string, address: string): string | null {
   const wallets = walletStore.state.wallets
@@ -239,8 +240,44 @@ export async function signUnsignedTransaction(params: {
     throw Object.assign(new Error(`Unsupported chain kind: ${chainConfig.chainKind}`), { code: BioErrorCodes.UNSUPPORTED_METHOD })
   }
 
+  const rawEstimatedFee = (params.unsignedTx as { estimatedFee?: unknown }).estimatedFee;
+  const normalizedEstimatedFee = (() => {
+    if (!rawEstimatedFee) {
+      return undefined;
+    }
+    if (rawEstimatedFee instanceof Amount) {
+      return rawEstimatedFee;
+    }
+    if (
+      typeof rawEstimatedFee === 'object' &&
+      rawEstimatedFee !== null &&
+      'raw' in rawEstimatedFee &&
+      'decimals' in rawEstimatedFee
+    ) {
+      const raw = (rawEstimatedFee as { raw: unknown }).raw;
+      const decimals = (rawEstimatedFee as { decimals: unknown }).decimals;
+      const symbol = (rawEstimatedFee as { symbol?: unknown }).symbol;
+      if (
+        (typeof raw === 'string' || typeof raw === 'number') &&
+        typeof decimals === 'number'
+      ) {
+        try {
+          return Amount.fromRaw(String(raw), decimals, typeof symbol === 'string' ? symbol : undefined);
+        } catch {
+          return undefined;
+        }
+      }
+    }
+    return undefined;
+  })();
+
   const signed = await signTransaction(
-    { chainId: params.unsignedTx.chainId, intentType: params.unsignedTx.intentType ?? 'transfer', data: params.unsignedTx.data },
+    {
+      chainId: params.unsignedTx.chainId,
+      intentType: params.unsignedTx.intentType ?? 'transfer',
+      data: params.unsignedTx.data,
+      ...(normalizedEstimatedFee ? { estimatedFee: normalizedEstimatedFee } : {}),
+    },
     chainConfig.chainKind === 'bioforest'
       ? { bioSecret: mnemonic, bioPaySecret: params.paySecret, privateKey: privateKeyBytes }
       : { privateKey: privateKeyBytes },

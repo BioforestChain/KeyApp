@@ -8,7 +8,7 @@ import { EcosystemTab } from "./tabs/EcosystemTab";
 import { SettingsTab } from "./tabs/SettingsTab";
 import { useFlow } from "../stackflow";
 import { superjson } from "@biochain/chain-effect";
-import type { BioAccount, EcosystemDestroyParams, EcosystemTransferParams, SignedTransaction } from "@/services/ecosystem";
+import type { BioAccount, EcosystemDestroyParams, EcosystemTransferParams, SignedTransaction, UnsignedTransaction } from "@/services/ecosystem";
 import {
   getBridge,
   initBioProvider,
@@ -32,6 +32,59 @@ import { miniappRuntimeStore } from "@/services/miniapp-runtime";
 type MainTabsParams = {
   tab?: TabId;
 };
+
+type TransferSignPreview = {
+  to: string;
+  amount: string;
+  asset?: string;
+  remark?: Record<string, string>;
+};
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
+
+function getTransferSignPreview(unsignedTx: UnsignedTransaction): TransferSignPreview | null {
+  if (unsignedTx.intentType !== "transfer") {
+    return null;
+  }
+
+  if (!isRecord(unsignedTx.data)) {
+    return null;
+  }
+
+  const to = typeof unsignedTx.data.to === "string" ? unsignedTx.data.to : "";
+  const amount = typeof unsignedTx.data.amount === "string" ? unsignedTx.data.amount : "";
+  if (to.length === 0 || amount.length === 0) {
+    return null;
+  }
+
+  const asset = typeof unsignedTx.data.bioAssetType === "string"
+    ? unsignedTx.data.bioAssetType
+    : typeof unsignedTx.data.assetType === "string"
+      ? unsignedTx.data.assetType
+      : undefined;
+
+  let remark: Record<string, string> | undefined;
+  if (isRecord(unsignedTx.data.remark)) {
+    const normalizedRemark: Record<string, string> = {};
+    for (const [key, value] of Object.entries(unsignedTx.data.remark)) {
+      if (typeof value === "string") {
+        normalizedRemark[key] = value;
+      }
+    }
+    if (Object.keys(normalizedRemark).length > 0) {
+      remark = normalizedRemark;
+    }
+  }
+
+  return {
+    to,
+    amount,
+    ...(asset ? { asset } : {}),
+    ...(remark ? { remark } : {}),
+  };
+}
 
 export const MainTabsActivity: ActivityComponentType<MainTabsParams> = ({ params }) => {
   const { push } = useFlow();
@@ -144,7 +197,7 @@ export const MainTabsActivity: ActivityComponentType<MainTabsParams> = ({ params
       console.log('[miniapp-transfer-sheet]', stage, payload);
     };
 
-    const enqueueTransferSheetTask = <T,>(task: () => Promise<T>, meta: { requestId: string; source: 'bio' | 'evm' | 'destroy' }): Promise<T> => {
+    const enqueueTransferSheetTask = <T,>(task: () => Promise<T>, meta: { requestId: string; source: 'bio' | 'evm' | 'destroy' | 'bio-sign' }): Promise<T> => {
       logTransferSheet('queue.enqueue', meta);
 
       const run = transferSheetTailRef.current
@@ -375,6 +428,114 @@ export const MainTabsActivity: ActivityComponentType<MainTabsParams> = ({ params
     });
 
     setSignTransactionDialog(async (params) => {
+      const transferPreview = getTransferSignPreview(params.unsignedTx);
+      if (transferPreview) {
+        const requestId = `sign-transfer-${Date.now()}-${++transferSheetSeqRef.current}`;
+
+        return new Promise<SignedTransaction | null>((resolveResult) => {
+          void enqueueTransferSheetTask(
+            () =>
+              new Promise<void>((releaseQueue) => {
+                let resultSettled = false;
+                let queueReleased = false;
+
+                const cleanup = () => {
+                  window.removeEventListener("miniapp-transfer-confirm", handleResult);
+                  window.removeEventListener("miniapp-transfer-sheet-closed", handleSheetClosed);
+                };
+
+                const resolveResultOnce = (value: SignedTransaction | null) => {
+                  if (resultSettled) return;
+                  resultSettled = true;
+                  resolveResult(value);
+                  if (queueReleased) {
+                    cleanup();
+                  }
+                };
+
+                const releaseQueueOnce = (reason: string) => {
+                  if (queueReleased) return;
+                  queueReleased = true;
+                  logTransferSheet("queue.release", {
+                    requestId,
+                    source: "bio-sign",
+                    reason,
+                    resultSettled,
+                  });
+                  releaseQueue();
+                  if (resultSettled) {
+                    cleanup();
+                  }
+                };
+
+                const handleResult = (e: Event) => {
+                  const detail = (e as CustomEvent).detail as
+                    | { requestId?: string; confirmed?: boolean; signedTx?: SignedTransaction }
+                    | undefined;
+
+                  if (detail?.requestId !== requestId) {
+                    logTransferSheet("dialog.ignore", { requestId, source: "bio-sign", incomingRequestId: detail?.requestId ?? "unknown" });
+                    return;
+                  }
+
+                  logTransferSheet("dialog.receive", {
+                    requestId,
+                    source: "bio-sign",
+                    confirmed: detail?.confirmed === true,
+                  });
+
+                  if (detail?.confirmed && detail.signedTx) {
+                    resolveResultOnce(detail.signedTx);
+                    return;
+                  }
+                  resolveResultOnce(null);
+                };
+
+                const handleSheetClosed = (e: Event) => {
+                  const detail = (e as CustomEvent).detail as { requestId?: string; reason?: string } | undefined;
+                  if (detail?.requestId !== requestId) {
+                    return;
+                  }
+
+                  logTransferSheet("dialog.sheet-closed", {
+                    requestId,
+                    source: "bio-sign",
+                    reason: detail?.reason ?? "unknown",
+                  });
+                  if (!resultSettled) {
+                    resolveResultOnce(null);
+                  }
+                  releaseQueueOnce(detail?.reason ?? "sheet-closed");
+                };
+
+                window.addEventListener("miniapp-transfer-confirm", handleResult);
+                window.addEventListener("miniapp-transfer-sheet-closed", handleSheetClosed);
+                logTransferSheet("dialog.push", {
+                  requestId,
+                  source: "bio-sign",
+                  from: params.from,
+                  to: transferPreview.to,
+                  chain: params.chain,
+                });
+                push("MiniappTransferConfirmJob", {
+                  requestId,
+                  mode: "sign",
+                  appName: params.app.name,
+                  appIcon: params.app.icon ?? "",
+                  from: params.from,
+                  to: transferPreview.to,
+                  amount: transferPreview.amount,
+                  chain: params.chain,
+                  ...(transferPreview.asset ? { asset: transferPreview.asset } : {}),
+                  ...(transferPreview.remark ? { remark: transferPreview.remark } : {}),
+                  unsignedTx: superjson.stringify(params.unsignedTx),
+                });
+              }),
+            { requestId, source: "bio-sign" },
+          );
+        });
+      }
+
       return new Promise<SignedTransaction | null>((resolve) => {
         const timeout = window.setTimeout(() => resolve(null), 60_000);
 

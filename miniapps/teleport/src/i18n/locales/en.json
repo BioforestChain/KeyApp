@@ -11,7 +11,11 @@
   },
   "connect": {
     "button": "Start Teleport",
+    "buttonWithChain": "Start {{chain}} Teleport",
+    "buttonWithChainDisabled": "{{chain}} Teleport Disabled",
+    "selectChain": "Please choose source chain",
     "loading": "Connecting...",
+    "loadingWithChain": "Connecting {{chain}}...",
     "loadingConfig": "Loading configuration...",
     "configError": "Failed to load configuration, please refresh"
   },
@@ -19,6 +23,7 @@
     "select": "Select Asset",
     "selectDesc": "BFM Ecosystem Foundation Community Token Exchange",
     "balance": "Available",
+    "disabled": "Disabled",
     "noAssets": "No assets available for transfer on this chain",
     "transfer": "{{from}} → {{to}}",
     "exchangeTo": "Exchange to {{target}} ({{chain}})",
@@ -68,6 +73,7 @@
   },
   "success": {
     "title": "Transfer Successful",
+    "pendingPost": "Reward is being posted, you can check records later",
     "sentTo": "Sent to target wallet",
     "newTransfer": "New Transfer"
   },

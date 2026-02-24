@@ -121,14 +121,21 @@ export const handleChainId: MethodHandler = async (_params, _context) => {
 
 /** bio_getBalance - Get balance */
 export const handleGetBalance: MethodHandler = async (params, _context) => {
-  const opts = params as { address?: string; chain?: string } | undefined
+  const opts = params as { address?: string; chain?: string; asset?: string } | undefined
   if (!opts?.address || !opts?.chain) {
     throw Object.assign(new Error('Missing address or chain'), { code: BioErrorCodes.INVALID_PARAMS })
   }
 
   const provider = getChainProvider(opts.chain)
+  const wantedAsset = opts.asset?.trim().toUpperCase()
 
   try {
+    if (wantedAsset) {
+      const balances = await provider.allBalances.fetch({ address: opts.address })
+      const matched = balances.find((item) => item.symbol.toUpperCase() === wantedAsset)
+      return matched?.amount.toRawString() ?? '0'
+    }
+
     // 使用 ChainProvider 的 nativeBalance fetcher
     const balance = await provider.nativeBalance.fetch({ address: opts.address })
     return balance?.amount.toRawString() ?? '0'

@@ -79,7 +79,8 @@ const mockBioSDK = `
     request: async ({ method, params }) => {
       if (method === 'bio_closeSplashScreen') return
       if (method === 'bio_selectAccount') {
-        return { address: '0x1234567890abcdef1234567890abcdef12345678', chain: 'ETH', name: 'Test Wallet' }
+        const chain = Array.isArray(params) && params[0] && params[0].chain ? params[0].chain : 'ETH'
+        return { address: '0x1234567890abcdef1234567890abcdef12345678', chain, name: 'Test Wallet' }
       }
       if (method === 'bio_pickWallet') {
         return { address: 'bfm_abcdef1234567890abcdef1234567890abcdef12', chain: 'BFMCHAIN', name: 'Target Wallet' }
@@ -149,7 +150,7 @@ test.describe('Teleport UI', () => {
     await expect(page.getByText(UI_TEXT.asset.select)).toBeVisible({ timeout: 10000 })
     
     // Wait for assets to load, then click ETH card
-    const ethCard = page.getByText('ETH → BFMCHAIN').first()
+    const ethCard = page.getByTestId('asset-card-ETH').first()
     await expect(ethCard).toBeVisible({ timeout: 5000 })
     await ethCard.click()
     
@@ -171,7 +172,7 @@ test.describe('Teleport UI', () => {
 
     // Wait for asset selection page and click ETH
     await expect(page.getByText(UI_TEXT.asset.select)).toBeVisible({ timeout: 10000 })
-    const ethCard = page.getByText('ETH → BFMCHAIN').first()
+    const ethCard = page.getByTestId('asset-card-ETH').first()
     await ethCard.click()
 
     // Fill amount
@@ -197,7 +198,7 @@ test.describe('Teleport UI', () => {
 
     // Wait for asset selection page and select ETH
     await expect(page.getByText(UI_TEXT.asset.select)).toBeVisible({ timeout: 10000 })
-    const ethCard = page.getByText('ETH → BFMCHAIN').first()
+    const ethCard = page.getByTestId('asset-card-ETH').first()
     await ethCard.click()
 
     // Fill amount and click next
@@ -224,7 +225,7 @@ test.describe('Teleport UI', () => {
 
     // Wait for asset selection page and select ETH
     await expect(page.getByText(UI_TEXT.asset.select)).toBeVisible({ timeout: 10000 })
-    const ethCard = page.getByText('ETH → BFMCHAIN').first()
+    const ethCard = page.getByTestId('asset-card-ETH').first()
     await ethCard.click()
 
     // Fill amount and proceed
@@ -256,7 +257,7 @@ test.describe('Teleport UI', () => {
 
     // Wait for asset selection page and select ETH
     await expect(page.getByText(UI_TEXT.asset.select)).toBeVisible({ timeout: 10000 })
-    const ethCard = page.getByText('ETH → BFMCHAIN').first()
+    const ethCard = page.getByTestId('asset-card-ETH').first()
     await ethCard.click()
 
     // Fill amount and proceed
@@ -407,7 +408,7 @@ test.describe('Teleport UI', () => {
 
     // Select asset
     await expect(page.getByText(UI_TEXT.asset.select)).toBeVisible({ timeout: 10000 })
-    await page.getByText('ETH → BFMCHAIN').first().click()
+    await page.getByTestId('asset-card-ETH').first().click()
 
     // Fill amount
     await expect(page.locator('input[type="number"]')).toBeVisible({ timeout: 10000 })

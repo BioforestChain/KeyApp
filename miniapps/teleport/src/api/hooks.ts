@@ -42,8 +42,6 @@ export function useTransmitAssetTypeList() {
         if (!chainAssets) continue
         
         for (const [assetKey, config] of Object.entries(chainAssets)) {
-          if (!config.enable) continue
-          
           // 检查传送时间是否有效
           const now = new Date()
           const startDate = new Date(config.transmitDate.startDate)
@@ -66,6 +64,7 @@ export function useTransmitAssetTypeList() {
             ratio: config.ratio,
             contractAddress: config.contractAddress,
             isAirdrop: config.isAirdrop,
+            enabled: config.enable,
           })
         }
       }

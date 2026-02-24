@@ -174,4 +174,5 @@ export interface DisplayAsset {
   ratio: Fraction
   contractAddress?: string
   isAirdrop: boolean
+  enabled: boolean
 }

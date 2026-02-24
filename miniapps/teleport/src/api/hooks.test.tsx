@@ -68,7 +68,7 @@ describe('Teleport API Hooks', () => {
       })
     })
 
-    it('should filter disabled assets', async () => {
+    it('should keep disabled assets for UI disabled state', async () => {
       const mockData = {
         transmitSupport: {
           ETH: {
@@ -97,7 +97,8 @@ describe('Teleport API Hooks', () => {
 
       await waitFor(() => expect(result.current.isSuccess).toBe(true))
 
-      expect(result.current.data).toHaveLength(0)
+      expect(result.current.data).toHaveLength(1)
+      expect(result.current.data?.[0]?.enabled).toBe(false)
     })
 
     it('should filter expired assets', async () => {
