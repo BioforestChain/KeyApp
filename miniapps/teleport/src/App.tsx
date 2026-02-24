@@ -322,7 +322,8 @@ export default function App() {
   }, [availableAssets]);
 
   const handleConnect = useCallback(async (portalChain: string) => {
-    if (!window.bio) {
+    const bio = window.bio;
+    if (!bio) {
       setError('Bio SDK 未初始化');
       return;
     }
@@ -330,7 +331,7 @@ export default function App() {
     setError(null);
     setSelectedSourceChain(portalChain);
     try {
-      const account = await window.bio.request<BioAccount>({
+      const account = await bio.request<BioAccount>({
         method: 'bio_selectAccount',
         params: [{ chain: portalChain }],
       });
@@ -343,7 +344,7 @@ export default function App() {
         const balanceEntries = await Promise.all(
           uniqueAssetTypes.map(async (assetType) => {
             try {
-              const rawBalance = await window.bio.request<string>({
+              const rawBalance = await bio.request<string>({
                 method: 'bio_getBalance',
                 params: [{ address: account.address, chain: account.chain, asset: assetType }],
               });
