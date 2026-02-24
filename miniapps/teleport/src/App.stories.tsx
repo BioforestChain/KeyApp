@@ -161,6 +161,7 @@ const meta = {
 
 export default meta
 type Story = StoryObj<typeof meta>
+const launchEthButtonPattern = /启动 ETH 传送门|Start ETH Teleport/i
 
 export const ConnectStep: Story = {
   name: '01 - 连接钱包',
@@ -169,7 +170,7 @@ export const ConnectStep: Story = {
     
     // Wait for loading to finish
     await waitFor(async () => {
-      const button = await canvas.findByRole('button', { name: /启动 .*传送门|Start .*Teleport/i })
+      const button = await canvas.findByRole('button', { name: launchEthButtonPattern })
       await expect(button).toBeInTheDocument()
     }, { timeout: 5000 })
   },
@@ -182,12 +183,12 @@ export const SelectAssetStep: Story = {
     
     // Wait for loading
     await waitFor(async () => {
-      const button = await canvas.findByRole('button', { name: /启动 .*传送门|Start .*Teleport/i })
+      const button = await canvas.findByRole('button', { name: launchEthButtonPattern })
       await expect(button).toBeInTheDocument()
     }, { timeout: 5000 })
     
     // Click connect
-    const connectButton = await canvas.findByRole('button', { name: /启动 .*传送门|Start .*Teleport/i })
+    const connectButton = await canvas.findByRole('button', { name: launchEthButtonPattern })
     await userEvent.click(connectButton)
     
     // Verify asset list is shown
@@ -204,12 +205,12 @@ export const InputAmountStep: Story = {
     
     // Wait for loading
     await waitFor(async () => {
-      const button = await canvas.findByRole('button', { name: /启动 .*传送门|Start .*Teleport/i })
+      const button = await canvas.findByRole('button', { name: launchEthButtonPattern })
       await expect(button).toBeInTheDocument()
     }, { timeout: 5000 })
     
     // Click connect
-    const connectButton = await canvas.findByRole('button', { name: /启动 .*传送门|Start .*Teleport/i })
+    const connectButton = await canvas.findByRole('button', { name: launchEthButtonPattern })
     await userEvent.click(connectButton)
     
     // Wait for asset list
@@ -236,12 +237,12 @@ export const SelectTargetStep: Story = {
     
     // Wait for loading
     await waitFor(async () => {
-      const button = await canvas.findByRole('button', { name: /启动 .*传送门|Start .*Teleport/i })
+      const button = await canvas.findByRole('button', { name: launchEthButtonPattern })
       await expect(button).toBeInTheDocument()
     }, { timeout: 5000 })
     
     // Click connect
-    await userEvent.click(await canvas.findByRole('button', { name: /启动 .*传送门|Start .*Teleport/i }))
+    await userEvent.click(await canvas.findByRole('button', { name: launchEthButtonPattern }))
     
     // Wait for and click asset
     await waitFor(() => expect(canvas.getByText('选择资产')).toBeInTheDocument(), { timeout: 3000 })
@@ -269,12 +270,12 @@ export const ConfirmStep: Story = {
     
     // Wait for loading
     await waitFor(async () => {
-      const button = await canvas.findByRole('button', { name: /启动 .*传送门|Start .*Teleport/i })
+      const button = await canvas.findByRole('button', { name: launchEthButtonPattern })
       await expect(button).toBeInTheDocument()
     }, { timeout: 5000 })
     
     // Click connect
-    await userEvent.click(await canvas.findByRole('button', { name: /启动 .*传送门|Start .*Teleport/i }))
+    await userEvent.click(await canvas.findByRole('button', { name: launchEthButtonPattern }))
     
     // Select asset
     await waitFor(() => expect(canvas.getByText('选择资产')).toBeInTheDocument(), { timeout: 3000 })
@@ -325,12 +326,12 @@ export const NoSdkError: Story = {
     
     // Wait for loading
     await waitFor(async () => {
-      const button = await canvas.findByRole('button', { name: /启动 .*传送门|Start .*Teleport/i })
+      const button = await canvas.findByRole('button', { name: launchEthButtonPattern })
       await expect(button).toBeInTheDocument()
     }, { timeout: 5000 })
     
     // Click connect
-    await userEvent.click(await canvas.findByRole('button', { name: /启动 .*传送门|Start .*Teleport/i }))
+    await userEvent.click(await canvas.findByRole('button', { name: launchEthButtonPattern }))
     
     // Verify error message
     await waitFor(async () => {
