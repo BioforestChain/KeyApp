@@ -37,6 +37,7 @@ import {
   type TronTransaction,
   type Trc20Transaction,
   SWAP_ORDER_STATE_ID,
+  SWAP_RECORD_STATE,
 } from './api';
 
 type Step =
@@ -120,26 +121,50 @@ function getTronSignedPayload(
 
 function isTransferAssetTransaction(value: unknown): value is TransferAssetTransaction {
   if (!isRecord(value)) return false
-  if (typeof value.senderId !== 'string') return false
-  if (typeof value.recipientId !== 'string') return false
-  if (typeof value.amount !== 'string') return false
-  if (typeof value.fee !== 'string') return false
-  if (typeof value.timestamp !== 'number') return false
-  if (typeof value.signature !== 'string') return false
+  if (!('asset' in value)) return false
   const asset = value.asset
-  if (!isRecord(asset) || !isRecord(asset.transferAsset)) return false
+  if (!isRecord(asset) || !('transferAsset' in asset) || !isRecord(asset.transferAsset)) return false
   const transferAsset = asset.transferAsset as Record<string, unknown>
-  return typeof transferAsset.amount === 'string' && typeof transferAsset.assetType === 'string'
+  return (
+    typeof transferAsset.amount === 'string' &&
+    typeof transferAsset.assetType === 'string' &&
+    typeof value.signature === 'string'
+  )
 }
 
 function getInternalTrJson(signedTx: BioSignedTransaction): TransferAssetTransaction | undefined {
-  if (isRecord(signedTx) && 'trJson' in signedTx) {
-    const trJson = signedTx.trJson
-    return isTransferAssetTransaction(trJson) ? trJson : undefined
+  const candidates: unknown[] = []
+
+  if (isRecord(signedTx)) {
+    const trJson = signedTx['trJson']
+    if (trJson !== undefined) {
+      candidates.push(trJson)
+    }
+
+    const data = signedTx['data']
+    if (data !== undefined) {
+      candidates.push(data)
+
+      if (isRecord(data)) {
+        const nestedSignedTx = data['signedTx']
+        if (nestedSignedTx !== undefined) {
+          candidates.push(nestedSignedTx)
+        }
+
+        const nestedTrJson = data['trJson']
+        if (nestedTrJson !== undefined) {
+          candidates.push(nestedTrJson)
+        }
+      }
+    }
   }
-  if (isRecord(signedTx.data)) {
-    return isTransferAssetTransaction(signedTx.data) ? signedTx.data : undefined
+
+  for (const candidate of candidates) {
+    if (isTransferAssetTransaction(candidate)) {
+      return candidate
+    }
   }
+
   return undefined
 }
 
@@ -179,10 +204,27 @@ const formatMinAmount = (decimals: number) => {
   return `0.${'0'.repeat(decimals - 1)}1`;
 };
 
+const formatRawBalance = (raw: string, decimals: number): string => {
+  const normalizedRaw = raw.trim();
+  if (!/^\d+$/.test(normalizedRaw)) return raw;
+  const normalized = normalizedRaw.replace(/^0+(?=\d)/, '');
+  const safeRaw = normalized.length > 0 ? normalized : '0';
+  if (decimals <= 0) {
+    return safeRaw.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  }
+  const padded = safeRaw.padStart(decimals + 1, '0');
+  const integerPart = padded.slice(0, -decimals);
+  const fractionPart = padded.slice(-decimals).replace(/0+$/, '');
+  const integerWithComma = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  return fractionPart.length > 0 ? `${integerWithComma}.${fractionPart}` : integerWithComma;
+};
+
 export default function App() {
   const { t } = useTranslation();
   const [step, setStep] = useState<Step>('connect');
   const [sourceAccount, setSourceAccount] = useState<BioAccount | null>(null);
+  const [selectedSourceChain, setSelectedSourceChain] = useState<string | null>(null);
+  const [sourceAssetBalancesRaw, setSourceAssetBalancesRaw] = useState<Record<string, string>>({});
   const [targetAccount, setTargetAccount] = useState<BioAccount | null>(null);
   const [selectedAsset, setSelectedAsset] = useState<DisplayAsset | null>(null);
   const [amount, setAmount] = useState('');
@@ -205,7 +247,14 @@ export default function App() {
   useEffect(() => {
     if (!recordDetail) return;
 
-    if (recordDetail.orderState === SWAP_ORDER_STATE_ID.SUCCESS) {
+    const isPosted =
+      recordDetail.state === SWAP_RECORD_STATE.POSTED ||
+      recordDetail.orderState === SWAP_ORDER_STATE_ID.SUCCESS;
+    const isToBePosted =
+      recordDetail.state === SWAP_RECORD_STATE.TO_BE_POSTED &&
+      recordDetail.orderState === SWAP_ORDER_STATE_ID.TO_TX_WAIT_ON_CHAIN;
+
+    if (isPosted || isToBePosted) {
       setStep('success');
     } else if (
       recordDetail.orderState === SWAP_ORDER_STATE_ID.FROM_TX_ON_CHAIN_FAIL ||
@@ -233,49 +282,93 @@ export default function App() {
   // 过滤可用资产（根据源账户的链）
   const availableAssets = useMemo(() => {
     if (!assets || !sourceAccount) return [];
-    return assets.filter((asset) => {
-      // 匹配链名（大小写不敏感）
-      return asset.chain.toLowerCase() === sourceAccount.chain.toLowerCase();
-    });
-  }, [assets, sourceAccount]);
+    const sourceChain = selectedSourceChain ?? sourceAccount.chain;
+    return assets
+      .filter((asset) => asset.chain.toLowerCase() === sourceChain.toLowerCase())
+      .map((asset) => ({
+        ...asset,
+        balance: formatRawBalance(
+          sourceAssetBalancesRaw[asset.assetType.toUpperCase()] ?? '0',
+          asset.decimals,
+        ),
+      }));
+  }, [assets, sourceAccount, selectedSourceChain, sourceAssetBalancesRaw]);
 
-  const handleConnect = useCallback(async () => {
-    if (!window.bio) {
+  const portalChains = useMemo(() => {
+    if (!assets) return [];
+    const chainMap = new Map<string, { chain: string; enabledCount: number }>();
+    assets.forEach((asset) => {
+      const current = chainMap.get(asset.chain);
+      if (current) {
+        if (asset.enabled) {
+          current.enabledCount += 1;
+        }
+        return;
+      }
+      chainMap.set(asset.chain, {
+        chain: asset.chain,
+        enabledCount: asset.enabled ? 1 : 0,
+      });
+    });
+    return [...chainMap.values()].sort((left, right) => left.chain.localeCompare(right.chain));
+  }, [assets]);
+
+  const sortedAvailableAssets = useMemo(() => {
+    return [...availableAssets].sort((left, right) => {
+      const chainOrder = left.targetChain.localeCompare(right.targetChain);
+      if (chainOrder !== 0) return chainOrder;
+      return left.symbol.localeCompare(right.symbol);
+    });
+  }, [availableAssets]);
+
+  const handleConnect = useCallback(async (portalChain: string) => {
+    const bio = window.bio;
+    if (!bio) {
       setError('Bio SDK 未初始化');
       return;
     }
     setLoading(true);
     setError(null);
+    setSelectedSourceChain(portalChain);
     try {
-      const account = await window.bio.request<BioAccount>({
+      const account = await bio.request<BioAccount>({
         method: 'bio_selectAccount',
-        params: [{}],
+        params: [{ chain: portalChain }],
       });
       setSourceAccount(account);
+      const accountChain = account.chain || portalChain;
+      const chainAssets = (assets ?? []).filter((asset) => asset.chain.toLowerCase() === accountChain.toLowerCase());
+      const uniqueAssetTypes = [...new Set(chainAssets.map((asset) => asset.assetType.toUpperCase()))];
+
+      if (uniqueAssetTypes.length > 0) {
+        const balanceEntries = await Promise.all(
+          uniqueAssetTypes.map(async (assetType) => {
+            try {
+              const rawBalance = await bio.request<string>({
+                method: 'bio_getBalance',
+                params: [{ address: account.address, chain: account.chain, asset: assetType }],
+              });
+              return [assetType, rawBalance] as const;
+            } catch {
+              return [assetType, '0'] as const;
+            }
+          }),
+        );
+        setSourceAssetBalancesRaw(Object.fromEntries(balanceEntries));
+      } else {
+        setSourceAssetBalancesRaw({});
+      }
       setStep('select-asset');
     } catch (err) {
       setError(err instanceof Error ? err.message : '连接失败');
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [assets]);
 
-  const handleSelectAsset = async (asset: DisplayAsset) => {
+  const handleSelectAsset = (asset: DisplayAsset) => {
+    if (!asset.enabled) return;
     setSelectedAsset(asset);
-
-    // 获取该资产的余额
-    if (window.bio && sourceAccount) {
-      try {
-        const balance = await window.bio.request<string>({
-          method: 'bio_getBalance',
-          params: [{ address: sourceAccount.address, chain: sourceAccount.chain }],
-        });
-        setSelectedAsset({ ...asset, balance });
-      } catch {
-        // 如果获取余额失败，使用默认值
-      }
-    }
-
     setStep('input-amount');
   };
 
@@ -289,16 +382,17 @@ export default function App() {
   };
 
   const handleSelectTarget = useCallback(async () => {
-    if (!window.bio || !sourceAccount) return;
+    if (!window.bio || !sourceAccount || !selectedAsset) return;
     setLoading(true);
     setError(null);
+    const shouldExcludeSameAddress = sourceAccount.chain.toLowerCase() === selectedAsset.targetChain.toLowerCase();
     try {
       const account = await window.bio.request<BioAccount>({
         method: 'bio_pickWallet',
         params: [
           {
-            chain: selectedAsset?.targetChain,
-            exclude: sourceAccount.address,
+            chain: selectedAsset.targetChain,
+            ...(shouldExcludeSameAddress ? { exclude: sourceAccount.address } : {}),
           },
         ],
       });
@@ -395,7 +489,7 @@ export default function App() {
           throw new Error('Invalid internal signed transaction payload');
         }
         fromTrJson.bcf = {
-          chainName: normalizeInternalChainName(sourceAccount.chain),
+          chainName: normalizeInternalChainName(selectedAsset.chain),
           trJson: internalTrJson,
         };
       }
@@ -423,6 +517,8 @@ export default function App() {
   const handleReset = useCallback(() => {
     setStep('connect');
     setSourceAccount(null);
+    setSelectedSourceChain(null);
+    setSourceAssetBalancesRaw({});
     setTargetAccount(null);
     setSelectedAsset(null);
     setAmount('');
@@ -513,16 +609,32 @@ export default function App() {
                   data-testid="connect-button"
                   size="lg"
                   className="h-12 w-full max-w-xs"
-                  onClick={handleConnect}
-                  disabled={loading || assetsLoading || assetsFetching || !!assetsError}
+                  disabled
                 >
-                  {(loading || assetsLoading || assetsFetching) && <Loader2 className="mr-2 size-4 animate-spin" />}
-                  {assetsLoading || assetsFetching
-                    ? t('connect.loadingConfig')
-                    : loading
-                      ? t('connect.loading')
-                      : t('connect.button')}
+                  {(assetsLoading || assetsFetching) && <Loader2 className="mr-2 size-4 animate-spin" />}
+                  {assetsLoading || assetsFetching ? t('connect.loadingConfig') : t('connect.selectChain')}
                 </Button>
+
+                {!assetsLoading && !assetsFetching && !assetsError && (
+                  <div className="flex w-full max-w-xs flex-col gap-2">
+                    {portalChains.map(({ chain, enabledCount }) => (
+                      <Button
+                        key={chain}
+                        size="lg"
+                        className="h-12 w-full"
+                        onClick={() => handleConnect(chain)}
+                        disabled={loading || enabledCount === 0}
+                      >
+                        {loading && selectedSourceChain === chain && <Loader2 className="mr-2 size-4 animate-spin" />}
+                        {loading && selectedSourceChain === chain
+                          ? t('connect.loadingWithChain', { chain })
+                          : enabledCount > 0
+                            ? t('connect.buttonWithChain', { chain })
+                            : t('connect.buttonWithChainDisabled', { chain })}
+                      </Button>
+                    ))}
+                  </div>
+                )}
 
                 {assetsError && (
                   <div className="flex flex-col items-center gap-2 text-center">
@@ -568,42 +680,55 @@ export default function App() {
                       {t('asset.selectDesc')}
                     </CardDescription>
                   </div>
-                  {availableAssets.length === 0 ? (
+                  {sortedAvailableAssets.length === 0 ? (
                     <Card>
                       <CardContent className="text-muted-foreground py-8 text-center">
                         {t('asset.noAssets')}
                       </CardContent>
                     </Card>
                   ) : (
-                    availableAssets.map((asset, i) => {
+                    sortedAvailableAssets.map((asset, i) => {
                       const rate = (Number(asset.ratio.numerator) / Number(asset.ratio.denominator))
                         .toFixed(4)
                         .replace(/\.?0+$/, '');
+                      const routeLabel = `${asset.chain}/${asset.symbol} ${t('common.arrow')} ${asset.targetChain}/${asset.targetAsset}`;
                       return (
                         <motion.div
-                          key={asset.id}
+                            key={asset.id}
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ delay: i * 0.05 }}
                         >
                           <Card
                             data-testid={`asset-card-${asset.symbol}`}
-                            className="hover:bg-accent cursor-pointer transition-colors"
-                            onClick={() => handleSelectAsset(asset)}
+                            className={cn(
+                              'transition-colors',
+                              asset.enabled ? 'hover:bg-accent cursor-pointer' : 'opacity-60',
+                            )}
+                            onClick={() => {
+                              if (!asset.enabled) return;
+                              handleSelectAsset(asset);
+                            }}
                           >
-                            <CardContent className="flex items-center gap-3 py-3">
-                              <AssetAvatar symbol={asset.symbol} chain={asset.chain} />
-                              <div className="min-w-0 flex-1">
-                                <CardTitle className="text-base">
-                                  {asset.symbol} {t('common.arrow')} {asset.targetAsset}
-                                </CardTitle>
-                                <CardDescription>
-                                  {t('asset.ratio', { from: asset.symbol, rate, to: asset.targetAsset })}
-                                </CardDescription>
+                            <CardContent className="space-y-2 py-3">
+                              <div className="flex items-center gap-3">
+                                <AssetAvatar symbol={asset.symbol} chain={asset.chain} />
+                                <div className="min-w-0 flex-1">
+                                  <CardTitle className="text-base break-words">{routeLabel}</CardTitle>
+                                  <CardDescription>
+                                    {t('asset.ratio', { from: asset.symbol, rate, to: asset.targetAsset })}
+                                  </CardDescription>
+                                </div>
                               </div>
                               <div className="text-right">
-                                <div className="font-semibold">{asset.balance || '-'}</div>
-                                <CardDescription>{t('asset.balance')}</CardDescription>
+                                <div className="font-semibold whitespace-nowrap">
+                                  {asset.balance || '-'} {asset.symbol} {t('asset.balance')}
+                                </div>
+                                {!asset.enabled && (
+                                  <Badge variant="outline" className="mt-1">
+                                    {t('asset.disabled')}
+                                  </Badge>
+                                )}
                               </div>
                             </CardContent>
                           </Card>
@@ -787,6 +912,7 @@ export default function App() {
                         name={sourceAccount?.name}
                         chain={sourceAccount?.chain}
                         compact
+                        showAddress
                       />
                       <WalletCard
                         label={t('wallet.receiver')}
@@ -794,6 +920,7 @@ export default function App() {
                         name={targetAccount?.name}
                         chain={selectedAsset?.targetChain}
                         compact
+                        showAddress
                         highlight
                       />
                     </div>
@@ -825,13 +952,6 @@ export default function App() {
                           min: formatMinAmount(selectedAsset?.decimals ?? 0),
                         })}
                       </span>
-                    </div>
-                    <Separator />
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">{t('confirm.fee')}</span>
-                      <Badge className="bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20">
-                        {t('confirm.free')}
-                      </Badge>
                     </div>
                   </CardContent>
                 </Card>
@@ -901,7 +1021,11 @@ export default function App() {
                   <p className="text-2xl font-bold text-emerald-400">
                     {expectedReceive} {selectedAsset?.targetAsset}
                   </p>
-                  <p className="text-muted-foreground text-sm">{t('success.sentTo')}</p>
+                  <p className="text-muted-foreground text-sm">
+                    {recordDetail?.state === SWAP_RECORD_STATE.TO_BE_POSTED
+                      ? t('success.pendingPost')
+                      : t('success.sentTo')}
+                  </p>
                 </div>
                 <Button variant="outline" className="w-full max-w-xs" onClick={handleReset}>
                   {t('success.newTransfer')}
@@ -949,6 +1073,7 @@ function WalletCard({
   name,
   chain,
   compact,
+  showAddress,
   highlight,
 }: {
   label: string;
@@ -956,6 +1081,7 @@ function WalletCard({
   name?: string;
   chain?: string;
   compact?: boolean;
+  showAddress?: boolean;
   highlight?: boolean;
 }) {
   const { t } = useTranslation();
@@ -983,6 +1109,9 @@ function WalletCard({
               )}
             </CardDescription>
             <div className="truncate text-sm font-medium">{name || truncateAddress(address)}</div>
+            {showAddress && address && (
+              <CardDescription className="truncate text-xs">{address}</CardDescription>
+            )}
           </div>
         </CardContent>
       </Card>

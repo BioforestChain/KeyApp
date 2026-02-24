@@ -11,7 +11,11 @@
   },
   "connect": {
     "button": "啟動傳送門",
+    "buttonWithChain": "啟動 {{chain}} 傳送門",
+    "buttonWithChainDisabled": "{{chain}} 傳送門未啟用",
+    "selectChain": "請選擇傳送鏈",
     "loading": "連接中...",
+    "loadingWithChain": "連接 {{chain}} 中...",
     "loadingConfig": "載入配置中...",
     "configError": "載入配置失敗，請刷新重試"
   },
@@ -19,6 +23,7 @@
     "select": "選擇資產",
     "selectDesc": "BFM 生態基金會社區代幣兌換",
     "balance": "可用",
+    "disabled": "未啟用",
     "noAssets": "當前鏈暫無可傳送資產",
     "transfer": "{{from}} → {{to}}",
     "exchangeTo": "兌換為 {{target}}（{{chain}}）",
@@ -68,6 +73,7 @@
   },
   "success": {
     "title": "傳送成功",
+    "pendingPost": "獎勵發放中，可稍後在記錄中查看",
     "sentTo": "已發送至目標錢包",
     "newTransfer": "發起新傳送"
   },

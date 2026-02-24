@@ -89,6 +89,39 @@ describe('Teleport API Client', () => {
       await expect(promise).rejects.toThrow(ApiError)
       await expect(promise).rejects.toThrow('Not allowed')
     })
+
+    it('should default isAirdrop to false when omitted', async () => {
+      const mockResponse = {
+        success: true,
+        result: {
+          transmitSupport: {
+            ETH: {
+              ETH: {
+                enable: true,
+                assetType: 'ETH',
+                recipientAddress: '0x123',
+                targetChain: 'BFMCHAIN',
+                targetAsset: 'BFM',
+                ratio: { numerator: 1, denominator: 1 },
+                transmitDate: {
+                  startDate: '2020-01-01',
+                  endDate: '2030-12-31',
+                },
+              },
+            },
+          },
+        },
+      }
+
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        text: () => Promise.resolve(JSON.stringify(mockResponse)),
+      })
+
+      const result = await getTransmitAssetTypeList()
+      expect(result.transmitSupport.ETH?.ETH?.isAirdrop).toBe(false)
+    })
   })
 
   describe('transmit', () => {

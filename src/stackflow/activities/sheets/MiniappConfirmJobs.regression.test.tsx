@@ -131,6 +131,7 @@ import { MiniappTransferConfirmJob } from './MiniappTransferConfirmJob';
 import { MiniappSignTransactionJob } from './MiniappSignTransactionJob';
 import { signUnsignedTransaction } from '@/services/ecosystem/handlers';
 import { getChainProvider } from '@/services/chain-adapter/providers';
+import { superjson } from '@biochain/chain-effect';
 
 describe('miniapp confirm jobs regressions', () => {
   beforeEach(() => {
@@ -429,6 +430,94 @@ describe('miniapp confirm jobs regressions', () => {
       ex_type: 'exchange.purchase',
       ex_id: 'exchange-001',
     });
+  });
+
+  it('sign mode returns signed transaction via transfer sheet without broadcasting', async () => {
+    const buildTransaction = vi.fn(async (intent: unknown) => ({
+      chainId: 'bfmetav2',
+      intentType: 'transfer',
+      data: intent,
+    }));
+    const broadcastTransaction = vi.fn(async () => 'tx-hash');
+
+    vi.mocked(getChainProvider).mockReturnValueOnce({
+      supportsFullTransaction: true,
+      buildTransaction,
+      signTransaction: vi.fn(),
+      broadcastTransaction,
+    } as unknown as ReturnType<typeof getChainProvider>);
+
+    vi.mocked(signUnsignedTransaction).mockResolvedValueOnce({
+      chainId: 'bfmetav2',
+      data: { tx: 'signed-transfer' },
+      signature: 'sig-sign-mode',
+    });
+
+    const requestId = 'sign-transfer-sheet-case';
+    const unsignedTx = {
+      chainId: 'bfmetav2',
+      intentType: 'transfer',
+      data: {
+        to: 'b_receiver_1',
+        amount: '1000',
+        bioAssetType: 'BFM',
+      },
+    } as const;
+
+    const eventPromise = new Promise<
+      CustomEvent<{ requestId?: string; confirmed?: boolean; signedTx?: { signature?: string } }>
+    >((resolve) => {
+      const handleEvent = (event: Event) => {
+        const customEvent = event as CustomEvent<{
+          requestId?: string;
+          confirmed?: boolean;
+          signedTx?: { signature?: string };
+        }>;
+        if (customEvent.detail?.requestId !== requestId) {
+          return;
+        }
+        window.removeEventListener('miniapp-transfer-confirm', handleEvent);
+        resolve(customEvent);
+      };
+
+      window.addEventListener('miniapp-transfer-confirm', handleEvent);
+    });
+
+    render(
+      <MiniappTransferConfirmJob
+        params={{
+          requestId,
+          mode: 'sign',
+          appName: 'Org App',
+          appIcon: '',
+          from: 'b_sender_1',
+          to: 'b_receiver_1',
+          amount: '1000',
+          chain: 'BFMetaV2',
+          asset: 'BFM',
+          unsignedTx: superjson.stringify(unsignedTx),
+        }}
+      />,
+    );
+
+    fireEvent.change(screen.getByTestId('miniapp-transfer-sign-fee-input'), {
+      target: { value: '0.0001' },
+    });
+
+    const confirmButton = screen.getByTestId('miniapp-transfer-review-confirm');
+    await waitFor(() => {
+      expect(confirmButton).not.toBeDisabled();
+    });
+
+    fireEvent.click(confirmButton);
+    fireEvent.click(screen.getByTestId('pattern-lock'));
+
+    const event = await eventPromise;
+    expect(event.detail.confirmed).toBe(true);
+    expect(event.detail.signedTx?.signature).toBe('sig-sign-mode');
+    expect(signUnsignedTransaction).toHaveBeenCalledTimes(1);
+    expect(buildTransaction).not.toHaveBeenCalled();
+    expect(broadcastTransaction).not.toHaveBeenCalled();
   });
 
 
