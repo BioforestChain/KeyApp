@@ -29,6 +29,7 @@ import type {
 
 const tokenInfoCache = new Map<string, ContractTokenInfo>()
 const tokenInfoInflight = new Map<string, Promise<ContractTokenInfo>>()
+const TOKEN_INFO_TIMEOUT_MS = 8000
 
 /**
  * Convert TRON hex deposit addresses in ExternalAssetInfoItem to Base58 format.
@@ -109,10 +110,26 @@ export const rechargeApi = {
     }
 
     const task = (async () => {
-      const raw = await apiClient.get<unknown>(API_ENDPOINTS.CONTRACT_TOKEN_INFO, {
-        contractAddress,
-        chainName,
+      const raw = await new Promise<unknown>((resolve, reject) => {
+        const timeoutId = setTimeout(() => {
+          reject(new ApiError('Token info request timeout', 408))
+        }, TOKEN_INFO_TIMEOUT_MS)
+
+        apiClient.get<unknown>(API_ENDPOINTS.CONTRACT_TOKEN_INFO, {
+          contractAddress,
+          chainName,
+        }).then(
+          (response) => {
+            clearTimeout(timeoutId)
+            resolve(response)
+          },
+          (error) => {
+            clearTimeout(timeoutId)
+            reject(error)
+          },
+        )
       })
+
       const parsed = contractTokenInfoSchema.safeParse(raw)
       if (!parsed.success) {
         throw new ApiError('Invalid contract token info response', 0, parsed.error.flatten())

@@ -245,6 +245,31 @@ describe('useForge', () => {
     expect(submitCall.fromTrJson.bsc?.signTransData).toBe('0xsignedBscTx')
   })
 
+  it('should extract rawTx for BSC provider payload', async () => {
+    mockBio.request
+      .mockResolvedValueOnce({ txHash: 'unsigned' })
+      .mockResolvedValueOnce({ data: { rawTx: '0xbscRawTxHex', detail: { nonce: '1' } } })
+      .mockResolvedValueOnce({ signature: 'sig', publicKey: 'pubkey' })
+
+    vi.mocked(rechargeApi.submitRecharge).mockResolvedValue({ orderId: 'order' })
+
+    const { result } = renderHook(() => useForge())
+
+    const bscParams = { ...mockForgeParams, externalChain: 'BSC' as const }
+
+    act(() => {
+      result.current.forge(bscParams)
+    })
+
+    await waitFor(() => {
+      expect(result.current.step).toBe('success')
+    })
+
+    const submitCall = vi.mocked(rechargeApi.submitRecharge).mock.calls[0][0]
+    expect(submitCall.fromTrJson).toHaveProperty('bsc')
+    expect(submitCall.fromTrJson.bsc?.signTransData).toBe('0xbscRawTxHex')
+  })
+
   it('should build correct fromTrJson for TRON with base58 address', async () => {
     // TRON depositAddress should be base58 format (starts with T)
     const tronDepositAddress = 'TZ4UXDV5ZhNW7fb2AMSbgfAEZ7hWsnYS2g'

@@ -64,4 +64,5 @@ describe('Forge rechargeApi', () => {
     await expect(promise).rejects.toThrow(ApiError)
     await expect(promise).rejects.toThrow('Bad Request')
   })
+
 })

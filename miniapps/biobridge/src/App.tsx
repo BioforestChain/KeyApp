@@ -21,6 +21,7 @@ import { ModeTabs } from './components/ModeTabs';
 import { RedemptionForm } from './components/RedemptionForm';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
+import { rechargeApi } from '@/api';
 import {
   Coins,
   Leaf,
@@ -247,18 +248,17 @@ export default function App() {
     selectedOption.externalInfo.decimals > 0
       ? selectedOption.externalInfo.decimals
       : undefined;
+  const externalTokenAddress = selectedOption?.externalInfo.contract?.trim();
   const tokenInfoTargets = useMemo(
     () =>
-      forgeOptions
-        .filter((option) => option.externalInfo.decimals === undefined)
-        .map((option) => ({
-          chain: option.externalChain,
-          address: option.externalInfo.contract,
-        })),
-    [forgeOptions],
+      selectedOption &&
+      externalTokenAddress &&
+      selectedOption.externalInfo.decimals === undefined
+        ? [{ chain: selectedOption.externalChain, address: externalTokenAddress }]
+        : [],
+    [selectedOption, externalTokenAddress],
   );
   const { tokenInfoMap, loadingMap } = useTokenInfoMap(tokenInfoTargets);
-  const externalTokenAddress = selectedOption?.externalInfo.contract?.trim();
   const tokenInfoKey =
     selectedOption?.externalChain && externalTokenAddress
       ? getTokenInfoKey(selectedOption.externalChain, externalTokenAddress)
@@ -274,19 +274,31 @@ export default function App() {
   const handleConfirm = useCallback(async () => {
     if (!externalAccount || !internalAccount || !selectedOption) return;
     const tokenAddress = selectedOption.externalInfo.contract?.trim();
-    if (needsTokenInfo && tokenInfoLoading) {
-      setError(t('error.decimalsLoading'));
-      return;
-    }
-    if (tokenAddress && resolvedExternalDecimals === undefined) {
-      setError(t('error.missingDecimals'));
-      return;
+    let effectiveExternalDecimals = resolvedExternalDecimals;
+    if (tokenAddress && effectiveExternalDecimals === undefined) {
+      try {
+        const tokenMeta = await rechargeApi.getTokenInfo({
+          contractAddress: tokenAddress,
+          chainName: selectedOption.externalChain,
+        });
+        effectiveExternalDecimals = tokenMeta.decimals;
+      } catch (fetchError) {
+        if (import.meta.env.DEV) {
+          console.warn('[biobridge] token decimals fetch failed on confirm', {
+            chain: selectedOption.externalChain,
+            contractAddress: tokenAddress,
+            fetchError,
+          });
+        }
+        setError(t('error.missingDecimals'));
+        return;
+      }
     }
 
     let amountInUnits: string | undefined;
-    if (typeof resolvedExternalDecimals === 'number') {
+    if (typeof effectiveExternalDecimals === 'number') {
       try {
-        amountInUnits = parseAmount(amount, resolvedExternalDecimals).toString();
+        amountInUnits = parseAmount(amount, effectiveExternalDecimals).toString();
       } catch {
         setError(t('error.invalidAmount'));
         return;
@@ -303,7 +315,7 @@ export default function App() {
     await forgeHook.forge({
       externalChain: selectedOption.externalChain,
       externalAsset: selectedOption.externalAsset,
-      externalDecimals: resolvedExternalDecimals,
+      externalDecimals: effectiveExternalDecimals,
       amountInUnits,
       depositAddress: selectedOption.externalInfo.depositAddress,
       externalContract: tokenAddress,
@@ -313,7 +325,7 @@ export default function App() {
       internalAsset: selectedOption.internalAsset,
       internalAccount,
     });
-  }, [externalAccount, internalAccount, selectedOption, amount, forgeHook, resolvedExternalDecimals, needsTokenInfo, t]);
+  }, [externalAccount, internalAccount, selectedOption, amount, forgeHook, resolvedExternalDecimals, t]);
 
   const handleReset = useCallback(() => {
     setRechargeStep('swap');
@@ -459,16 +471,11 @@ export default function App() {
                                 selectedOption?.externalAsset === option.externalAsset &&
                                 selectedOption?.externalChain === option.externalChain;
                               const isPrimary = isSelected || (!selectedOption && index === 0);
-                              const optionTokenInfoKey = option.externalInfo.contract?.trim()
-                                ? getTokenInfoKey(option.externalChain, option.externalInfo.contract.trim())
-                                : undefined;
-                              const optionTokenInfo = optionTokenInfoKey ? tokenInfoMap[optionTokenInfoKey] : undefined;
-                              const externalSymbol = optionTokenInfo?.symbol ?? option.externalAsset;
-                              const externalName = optionTokenInfo?.name;
-                              const externalLogo = option.externalLogo ?? optionTokenInfo?.icon;
+                              const externalSymbol = option.externalAsset;
+                              const externalLogo = option.externalLogo;
                               const externalLabel = `${externalSymbol} (${getChainName(option.externalChain)})`;
                               const internalLabel = `${option.internalAsset} (${getChainName(option.internalChain)})`;
-                              const secondaryLine = `${externalName ? `${externalName} · ` : ''}${externalLabel} ${t('common.arrow')} ${internalLabel}`;
+                              const secondaryLine = `${externalLabel} ${t('common.arrow')} ${internalLabel}`;
                               return (
                                 <button
                                   key={`${option.externalChain}-${option.externalAsset}-${option.internalAsset}`}
