@@ -282,14 +282,7 @@ export default function App() {
           chainName: selectedOption.externalChain,
         });
         effectiveExternalDecimals = tokenMeta.decimals;
-      } catch (fetchError) {
-        if (import.meta.env.DEV) {
-          console.warn('[biobridge] token decimals fetch failed on confirm', {
-            chain: selectedOption.externalChain,
-            contractAddress: tokenAddress,
-            fetchError,
-          });
-        }
+      } catch {
         setError(t('error.missingDecimals'));
         return;
       }

@@ -466,7 +466,7 @@ describe('Teleport App', () => {
             assetType: 'USDT',
             recipientAddress: '0xReceiver',
             targetChain: 'BFMETAV2',
-            targetAsset: 'BDT',
+            targetAsset: 'BFM',
             ratio: { numerator: 1, denominator: 1 },
             transmitDate: {
               startDate: '2020-01-01',

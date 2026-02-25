@@ -97,14 +97,7 @@ export function useTokenInfoMap(targets: TokenInfoTarget[]) {
             chainName: entry.chain,
           })
           return { key: entry.key, info }
-        } catch (error) {
-          if (import.meta.env.DEV) {
-            console.warn('[biobridge] token info fetch failed', {
-              chain: entry.chain,
-              address: entry.address,
-              error,
-            })
-          }
+        } catch {
           return null
         }
       }),

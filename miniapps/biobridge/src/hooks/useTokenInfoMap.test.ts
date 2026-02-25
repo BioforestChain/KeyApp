@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { renderHook, waitFor } from '@testing-library/react'
 import { useTokenInfoMap, getTokenInfoKey, type TokenInfoTarget } from './useTokenInfoMap'
+import type { ContractTokenInfo } from '@/api/types'
 
 vi.mock('@/api', () => ({
   rechargeApi: {
@@ -24,12 +25,7 @@ describe('useTokenInfoMap', () => {
   })
 
   it('should not duplicate token info requests when rerendering with same targets', async () => {
-    const deferred = createDeferred({
-      chain: 'BSC',
-      address: '0xabc',
-      decimals: 18,
-      symbol: 'USDT',
-    })
+    const deferred = createDeferred<ContractTokenInfo>()
 
     vi.mocked(rechargeApi.getTokenInfo).mockImplementation(() => deferred.promise)
 
