@@ -18,8 +18,8 @@
   "author": [
     "@bfmeta.info"
   ],
-  "version": "1.0.9",
-  "change_log": "fix teleport transfer sign flow and balance rendering",
+  "version": "1.0.10",
+  "change_log": "fix miniapp bridge decimals loading and EVM signed payload handling",
   "categories": [
     "application",
     "wallet"

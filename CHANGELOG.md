@@ -1,5 +1,11 @@
 # 更新日志
 
+## [1.0.10] - 2026-02-25
+
+fix miniapp bridge decimals loading and EVM signed payload handling
+
+<!-- last-commit: 5013dfb699cd80814914020bc859d2f886a46b98 -->
+
 ## [1.0.9] - 2026-02-24
 
 fix teleport transfer sign flow and balance rendering
