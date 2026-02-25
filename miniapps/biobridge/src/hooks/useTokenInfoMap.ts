@@ -17,6 +17,7 @@ export function useTokenInfoMap(targets: TokenInfoTarget[]) {
   const tokenInfoRef = useRef(tokenInfoMap)
   const loadingRef = useRef(new Set<string>())
   const mountedRef = useRef(true)
+  const targetEntriesRef = useRef<Array<{ key: string; chain: string; address: string }>>([])
 
   useEffect(() => {
     tokenInfoRef.current = tokenInfoMap
@@ -28,22 +29,8 @@ export function useTokenInfoMap(targets: TokenInfoTarget[]) {
     }
   }, [])
 
-  const targetKeys = useMemo(() => {
-    return targets
-      .map((target) => {
-        const address = target.address?.trim()
-        if (!address) return null
-        return getTokenInfoKey(target.chain, address)
-      })
-      .filter((key): key is string => Boolean(key))
-      .sort()
-      .join('|')
-  }, [targets])
-
-  useEffect(() => {
-    let cancelled = false
-
-    const toFetch = targets
+  const targetEntries = useMemo(() => {
+    const entries = targets
       .map((target) => {
         const address = target.address?.trim()
         if (!address) return null
@@ -51,6 +38,30 @@ export function useTokenInfoMap(targets: TokenInfoTarget[]) {
         return { key, chain: target.chain, address }
       })
       .filter((entry): entry is { key: string; chain: string; address: string } => Boolean(entry))
+      .sort((left, right) => left.key.localeCompare(right.key))
+
+    const deduped = new Map<string, { key: string; chain: string; address: string }>()
+    entries.forEach((entry) => {
+      if (!deduped.has(entry.key)) {
+        deduped.set(entry.key, entry)
+      }
+    })
+    return [...deduped.values()]
+  }, [targets])
+
+  const targetKeys = useMemo(
+    () => targetEntries.map((entry) => entry.key).join('|'),
+    [targetEntries],
+  )
+
+  useEffect(() => {
+    targetEntriesRef.current = targetEntries
+  }, [targetKeys, targetEntries])
+
+  useEffect(() => {
+    let cancelled = false
+
+    const toFetch = targetEntriesRef.current
       .filter((entry) => !tokenInfoRef.current[entry.key] && !loadingRef.current.has(entry.key))
 
     if (toFetch.length === 0) return
@@ -111,7 +122,7 @@ export function useTokenInfoMap(targets: TokenInfoTarget[]) {
       cancelled = true
       clearLoading()
     }
-  }, [targets, targetKeys])
+  }, [targetKeys])
 
   return { tokenInfoMap, loadingMap }
 }

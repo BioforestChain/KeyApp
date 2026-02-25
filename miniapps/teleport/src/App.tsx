@@ -119,6 +119,34 @@ function getTronSignedPayload(
   throw new Error(`Invalid ${label} transaction payload`)
 }
 
+function extractEvmSignedTxData(data: unknown, label: 'ETH' | 'BSC'): string {
+  if (typeof data === 'string') {
+    return data
+  }
+
+  if (isRecord(data)) {
+    const rawTx = data.rawTx
+    if (typeof rawTx === 'string' && rawTx.length > 0) {
+      return rawTx
+    }
+
+    const signTransData = data.signTransData
+    if (typeof signTransData === 'string' && signTransData.length > 0) {
+      return signTransData
+    }
+
+    const nestedSignedTx = data.signedTx
+    if (isRecord(nestedSignedTx)) {
+      const nestedRawTx = nestedSignedTx.rawTx
+      if (typeof nestedRawTx === 'string' && nestedRawTx.length > 0) {
+        return nestedRawTx
+      }
+    }
+  }
+
+  throw new Error(`Invalid ${label} signed transaction payload`)
+}
+
 function isTransferAssetTransaction(value: unknown): value is TransferAssetTransaction {
   if (!isRecord(value)) return false
   if (!('asset' in value)) return false
@@ -464,16 +492,13 @@ export default function App() {
       // 4. 构造 fromTrJson（根据链类型）
       // 注意：EVM 需要 raw signed tx 的 hex；TRON/内链需要结构化交易体
       const fromTrJson: FromTrJson = {};
-      const signTransData = typeof signedTx.data === 'string'
-        ? signedTx.data
-        : superjson.stringify(signedTx.data);
       const isTronChain = chainLower === 'tron' || chainLower === 'trc20';
       const isTrc20 = chainLower === 'trc20' || (chainLower === 'tron' && !!selectedAsset.contractAddress);
 
       if (chainLower === 'eth') {
-        fromTrJson.eth = { signTransData };
+        fromTrJson.eth = { signTransData: extractEvmSignedTxData(signedTx.data, 'ETH') };
       } else if (chainLower === 'bsc') {
-        fromTrJson.bsc = { signTransData };
+        fromTrJson.bsc = { signTransData: extractEvmSignedTxData(signedTx.data, 'BSC') };
       } else if (isTronChain) {
         if (isTrc20) {
           const tronPayload = getTronSignedPayload(signedTx.data, 'TRC20');

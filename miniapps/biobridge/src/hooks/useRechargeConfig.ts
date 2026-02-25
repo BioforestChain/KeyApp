@@ -2,7 +2,7 @@
  * Hook for fetching recharge configuration
  */
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { rechargeApi } from '@/api'
 import type { RechargeConfig, ExternalChainName, ExternalAssetInfoItem } from '@/api/types'
 
@@ -95,7 +95,10 @@ export function useRechargeConfig() {
     fetchConfig()
   }, [fetchConfig])
 
-  const forgeOptions = state.config ? parseForgeOptions(state.config) : []
+  const forgeOptions = useMemo(
+    () => (state.config ? parseForgeOptions(state.config) : []),
+    [state.config],
+  )
 
   return {
     ...state,

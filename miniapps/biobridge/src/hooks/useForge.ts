@@ -59,6 +59,37 @@ function isTronPayload(value: unknown): value is TronTransaction {
   return isRecord(value)
 }
 
+function extractEvmSignedTxData(
+  data: unknown,
+  label: string,
+): string {
+  if (typeof data === 'string') {
+    return data
+  }
+
+  if (isRecord(data)) {
+    const rawTx = data.rawTx
+    if (typeof rawTx === 'string' && rawTx.length > 0) {
+      return rawTx
+    }
+
+    const signTransData = data.signTransData
+    if (typeof signTransData === 'string' && signTransData.length > 0) {
+      return signTransData
+    }
+
+    const nestedSigned = data.signedTx
+    if (isRecord(nestedSigned)) {
+      const nestedRawTx = nestedSigned.rawTx
+      if (typeof nestedRawTx === 'string' && nestedRawTx.length > 0) {
+        return nestedRawTx
+      }
+    }
+  }
+
+  throw new Error(`Invalid ${label} signed transaction payload`)
+}
+
 function extractTronSignedTx(
   data: unknown,
   label: string,
@@ -91,15 +122,11 @@ function buildFromTrJson(
   signedTx: BioSignedTransaction,
   isTrc20: boolean,
 ): FromTrJson {
-  const signTransData = typeof signedTx.data === 'string'
-    ? signedTx.data
-    : superjson.stringify(signedTx.data)
-
   switch (chain) {
     case 'ETH':
-      return { eth: { signTransData } }
+      return { eth: { signTransData: extractEvmSignedTxData(signedTx.data, 'ETH') } }
     case 'BSC':
-      return { bsc: { signTransData } }
+      return { bsc: { signTransData: extractEvmSignedTxData(signedTx.data, 'BSC') } }
     case 'TRON':
       if (isTrc20) {
         return { trc20: extractTronSignedTx(signedTx.data, 'TRC20') }

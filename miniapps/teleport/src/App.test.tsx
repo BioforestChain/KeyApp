@@ -454,4 +454,106 @@ describe('Teleport App', () => {
       )
     })
   })
+
+  it('should submit BSC rawTx as signTransData for external transmit', async () => {
+    const mockedGetTransmitAssetTypeList = vi.mocked(getTransmitAssetTypeList)
+    mockedGetTransmitAssetTypeList.mockResolvedValueOnce({
+      transmitSupport: {
+        BSC: {
+          USDT: {
+            enable: true,
+            isAirdrop: false,
+            assetType: 'USDT',
+            recipientAddress: '0xReceiver',
+            targetChain: 'BFMETAV2',
+            targetAsset: 'BFM',
+            ratio: { numerator: 1, denominator: 1 },
+            transmitDate: {
+              startDate: '2020-01-01',
+              endDate: '2030-12-31',
+            },
+          },
+        },
+      },
+    })
+
+    const mockedTransmit = vi.mocked(transmit)
+    mockedTransmit.mockResolvedValue({
+      orderId: 'order-bsc-1',
+    })
+
+    mockBio.request.mockImplementation(
+      ({ method, params }: { method: string; params?: Array<{ chain?: string }> }) => {
+        if (method === 'bio_selectAccount') {
+          return Promise.resolve({ address: '0xSourceBsc', chain: params?.[0]?.chain ?? 'BSC', name: 'Source' })
+        }
+        if (method === 'bio_getBalance') {
+          return Promise.resolve('1000000000')
+        }
+        if (method === 'bio_pickWallet') {
+          return Promise.resolve({ address: 'bTarget', chain: 'BFMETAV2', name: 'Target' })
+        }
+        if (method === 'bio_createTransaction') {
+          return Promise.resolve({ chainId: 'bsc', data: { unsigned: true } })
+        }
+        if (method === 'bio_signTransaction') {
+          return Promise.resolve({
+            chainId: 'bsc',
+            data: {
+              rawTx: '0xbscRawTxHex',
+              detail: { nonce: '1' },
+            },
+          })
+        }
+        if (method === 'bio_closeSplashScreen') {
+          return Promise.resolve(null)
+        }
+        return Promise.resolve(null)
+      },
+    )
+
+    render(<App />, { wrapper: createWrapper() })
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: '启动 BSC 传送门' })).toBeInTheDocument()
+    })
+
+    fireEvent.click(screen.getByRole('button', { name: '启动 BSC 传送门' }))
+
+    await waitFor(() => {
+      expect(screen.getByTestId('asset-card-USDT')).toBeInTheDocument()
+    })
+
+    fireEvent.click(screen.getByTestId('asset-card-USDT'))
+
+    await waitFor(() => {
+      expect(screen.getByTestId('amount-input')).toBeInTheDocument()
+    })
+    fireEvent.change(screen.getByTestId('amount-input'), { target: { value: '10' } })
+
+    fireEvent.click(screen.getByTestId('next-button'))
+
+    await waitFor(() => {
+      expect(screen.getByTestId('target-button')).toBeInTheDocument()
+    })
+    fireEvent.click(screen.getByTestId('target-button'))
+
+    await waitFor(() => {
+      expect(screen.getByTestId('confirm-button')).toBeInTheDocument()
+    })
+    fireEvent.click(screen.getByTestId('confirm-button'))
+
+    await waitFor(() => {
+      expect(mockedTransmit).toHaveBeenCalledTimes(1)
+      expect(mockedTransmit).toHaveBeenCalledWith(
+        expect.objectContaining({
+          fromTrJson: expect.objectContaining({
+            bsc: expect.objectContaining({
+              signTransData: '0xbscRawTxHex',
+            }),
+          }),
+        }),
+      )
+    })
+  })
 })

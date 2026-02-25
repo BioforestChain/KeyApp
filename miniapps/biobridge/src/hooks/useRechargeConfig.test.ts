@@ -204,4 +204,20 @@ describe('useRechargeConfig', () => {
 
     expect(result.current.forgeOptions[0]?.externalInfo.decimals).toBeUndefined()
   })
+
+  it('should keep forgeOptions reference stable when config does not change', async () => {
+    vi.mocked(rechargeApi.getSupport).mockResolvedValue(mockConfig)
+
+    const { result, rerender } = renderHook(() => useRechargeConfig())
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false)
+    })
+
+    const firstReference = result.current.forgeOptions
+    rerender()
+    const secondReference = result.current.forgeOptions
+
+    expect(secondReference).toBe(firstReference)
+  })
 })
