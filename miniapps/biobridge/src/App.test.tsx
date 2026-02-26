@@ -178,4 +178,41 @@ describe('Forge App', () => {
       )
     })
   })
+
+  it('should use bio_selectAccount for external chain account', async () => {
+    mockBio.request.mockImplementation(({ method, params }: { method: string; params?: Array<{ chain?: string }> }) => {
+      if (method === 'bio_closeSplashScreen') return Promise.resolve(null)
+      if (method === 'bio_selectAccount') {
+        const chain = params?.[0]?.chain
+        if (chain === 'ethereum') {
+          return Promise.resolve({ address: '0xexternal-bio', chain: 'ethereum' })
+        }
+        return Promise.resolve({ address: 'bfmeta123', chain: 'bfmeta' })
+      }
+      return Promise.resolve(null)
+    })
+
+    render(<App />)
+
+    await waitFor(() => {
+      expect(screen.getByTestId('connect-button')).toBeInTheDocument()
+    })
+
+    fireEvent.click(screen.getByTestId('connect-button'))
+
+    await waitFor(() => {
+      expect(screen.getByText(/支付/)).toBeInTheDocument()
+      expect(screen.getByText('0xexternal-bio')).toBeInTheDocument()
+    })
+
+    expect(mockBio.request).toHaveBeenCalledWith(
+      expect.objectContaining({
+        method: 'bio_selectAccount',
+        params: [{ chain: 'ethereum' }],
+      })
+    )
+    expect(mockEthereum.request).not.toHaveBeenCalledWith(
+      expect.objectContaining({ method: 'eth_requestAccounts' })
+    )
+  })
 })
