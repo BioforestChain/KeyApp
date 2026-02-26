@@ -18,8 +18,8 @@
   "author": [
     "@bfmeta.info"
   ],
-  "version": "1.0.10",
-  "change_log": "fix miniapp bridge decimals loading and EVM signed payload handling",
+  "version": "1.0.11",
+  "change_log": "fix: biobridge external account now always uses keyapp bio_selectAccount",
   "categories": [
     "application",
     "wallet"

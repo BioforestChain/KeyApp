@@ -1,5 +1,11 @@
 # 更新日志
 
+## [1.0.11] - 2026-02-26
+
+fix: biobridge external account now always uses keyapp bio_selectAccount
+
+<!-- last-commit: eca375a78cf252376c315d1fa6776fde7ceaeb55 -->
+
 ## [1.0.10] - 2026-02-25
 
 fix miniapp bridge decimals loading and EVM signed payload handling
