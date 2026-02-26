@@ -7,7 +7,6 @@ import { useState, useCallback, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { BioAccount } from '@biochain/bio-sdk';
 import { normalizeChainId } from '@biochain/bio-sdk';
-import { getChainType, getEvmChainIdFromApi } from '@/lib/chain';
 import { parseAmount } from '@/lib/fee';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -170,53 +169,10 @@ export default function App() {
     setError(null);
     try {
       const externalChain = activeOption.externalChain;
-      const chainType = getChainType(externalChain);
-
-      let extAcc: BioAccount;
-
-      if (chainType === 'evm') {
-        if (!window.ethereum) {
-          throw new Error('Ethereum provider not available');
-        }
-        const evmChainId = getEvmChainIdFromApi(externalChain);
-        if (evmChainId) {
-          await window.ethereum.request({
-            method: 'wallet_switchEthereumChain',
-            params: [{ chainId: evmChainId }],
-          });
-        }
-        const accounts = await window.ethereum.request<string[]>({
-          method: 'eth_requestAccounts',
-        });
-        if (!accounts || accounts.length === 0) {
-          throw new Error('No accounts returned');
-        }
-        extAcc = {
-          address: accounts[0],
-          chain: normalizeChainId(externalChain),
-          publicKey: '',
-        };
-      } else if (chainType === 'tron') {
-        if (!window.tronLink) {
-          throw new Error('TronLink provider not available');
-        }
-        const result = await window.tronLink.request<{ code: number; message: string; data: { base58: string } }>({
-          method: 'tron_requestAccounts',
-        });
-        if (!result || result.code !== 200) {
-          throw new Error('TRON connection failed');
-        }
-        extAcc = {
-          address: result.data.base58,
-          chain: 'tron',
-          publicKey: '',
-        };
-      } else {
-        extAcc = await window.bio.request<BioAccount>({
-          method: 'bio_selectAccount',
-          params: [{ chain: normalizeChainId(externalChain) }],
-        });
-      }
+      const extAcc = await window.bio.request<BioAccount>({
+        method: 'bio_selectAccount',
+        params: [{ chain: normalizeChainId(externalChain) }],
+      });
       setExternalAccount(extAcc);
 
       const intAcc = await window.bio.request<BioAccount>({
