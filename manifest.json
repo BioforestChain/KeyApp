@@ -18,8 +18,8 @@
   "author": [
     "@bfmeta.info"
   ],
-  "version": "1.0.11",
-  "change_log": "fix: biobridge external account now always uses keyapp bio_selectAccount",
+  "version": "1.0.12",
+  "change_log": "fix: recover correct BSC sender for biobridge recharge signing",
   "categories": [
     "application",
     "wallet"
