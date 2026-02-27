@@ -1,5 +1,11 @@
 # 更新日志
 
+## [1.0.12] - 2026-02-27
+
+fix: recover correct BSC sender for biobridge recharge signing
+
+<!-- last-commit: 922b0ceeb4fc2865d5f3825a9ea2114c4eac2703 -->
+
 ## [1.0.11] - 2026-02-26
 
 fix: biobridge external account now always uses keyapp bio_selectAccount
