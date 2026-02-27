@@ -28,7 +28,10 @@
     "decimalsLoading": "精度读取中...",
     "decimalsFromTokenInfo": "TokenInfo",
     "decimalsFallback": "默认",
-    "contractHint": "合约：{{address}}"
+    "contractHint": "合约：{{address}}",
+    "changeWallets": "重新连接账户",
+    "sender": "发送地址",
+    "receiver": "接收地址"
   },
   "redemption": {
     "title": "赎回",
@@ -80,6 +83,7 @@
     "invalidAmount": "请输入有效金额",
     "decimalsLoading": "精度信息加载中，请稍候",
     "missingDecimals": "缺少资产精度配置",
+    "accountChainMismatch": "账户与当前链不匹配，请重新连接账户",
     "forgeFailed": "操作失败"
   },
   "picker": {

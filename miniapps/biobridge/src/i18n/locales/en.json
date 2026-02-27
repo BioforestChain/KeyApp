@@ -28,7 +28,10 @@
     "decimalsLoading": "Loading decimals...",
     "decimalsFromTokenInfo": "token info",
     "decimalsFallback": "default",
-    "contractHint": "Contract: {{address}}"
+    "contractHint": "Contract: {{address}}",
+    "changeWallets": "Change wallets",
+    "sender": "Sender",
+    "receiver": "Receiver"
   },
   "redemption": {
     "title": "Redemption",
@@ -80,6 +83,7 @@
     "invalidAmount": "Please enter a valid amount",
     "decimalsLoading": "Token decimals are loading",
     "missingDecimals": "Missing token decimals configuration",
+    "accountChainMismatch": "Wallet account does not match selected chain, reconnect wallets",
     "forgeFailed": "Operation failed"
   },
   "picker": {

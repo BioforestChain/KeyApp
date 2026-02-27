@@ -202,13 +202,16 @@ export function EvmTransactionMixin<TBase extends Constructor<{ chainId: string 
                 chainId: number | string
             }
             const chainId = await this.#resolveChainId(txData.chainId)
+            const gasPrice = this.#normalizeQuantityHex(txData.gasPrice)
+            const gasLimit = this.#normalizeQuantityHex(txData.gasLimit)
+            const value = this.#normalizeQuantityHex(txData.value)
 
             const rawTx = this.#rlpEncode([
                 this.#toRlpHex(txData.nonce),
-                txData.gasPrice,
-                txData.gasLimit,
+                gasPrice,
+                gasLimit,
                 txData.to.toLowerCase(),
-                txData.value,
+                value,
                 txData.data,
                 this.#toRlpHex(chainId),
                 '0x',
@@ -228,10 +231,10 @@ export function EvmTransactionMixin<TBase extends Constructor<{ chainId: string 
 
             const signedRaw = this.#rlpEncode([
                 this.#toRlpHex(txData.nonce),
-                txData.gasPrice,
-                txData.gasLimit,
+                gasPrice,
+                gasLimit,
                 txData.to.toLowerCase(),
-                txData.value,
+                value,
                 txData.data,
                 this.#toRlpHex(v),
                 '0x' + rHex,
@@ -257,6 +260,18 @@ export function EvmTransactionMixin<TBase extends Constructor<{ chainId: string 
         #toRlpHex(n: number): string {
             if (n === 0) return '0x'
             return '0x' + n.toString(16)
+        }
+
+        #normalizeQuantityHex(value: string): string {
+            const trimmed = value.trim()
+            if (!trimmed.startsWith('0x') && !trimmed.startsWith('0X')) {
+                return trimmed
+            }
+            const hex = trimmed.slice(2).replace(/^0+/, '')
+            if (hex.length === 0) {
+                return '0x'
+            }
+            return `0x${hex}`
         }
 
         #rlpEncode(items: string[]): string {

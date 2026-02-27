@@ -28,7 +28,10 @@
     "decimalsLoading": "精度讀取中...",
     "decimalsFromTokenInfo": "TokenInfo",
     "decimalsFallback": "預設",
-    "contractHint": "合約：{{address}}"
+    "contractHint": "合約：{{address}}",
+    "changeWallets": "重新連接帳戶",
+    "sender": "發送地址",
+    "receiver": "接收地址"
   },
   "redemption": {
     "title": "贖回",
@@ -80,6 +83,7 @@
     "invalidAmount": "請輸入有效金額",
     "decimalsLoading": "精度資訊載入中，請稍候",
     "missingDecimals": "缺少資產精度配置",
+    "accountChainMismatch": "帳戶與當前鏈不匹配，請重新連接帳戶",
     "forgeFailed": "操作失敗"
   },
   "picker": {

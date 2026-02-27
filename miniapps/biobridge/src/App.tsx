@@ -39,6 +39,10 @@ import type { BridgeMode } from '@/api/types';
 
 type RechargeStep = 'connect' | 'swap' | 'confirm' | 'processing' | 'success';
 
+function normalizeIdForCompare(value: string | undefined): string {
+  return value?.trim().toLowerCase() ?? '';
+}
+
 const TOKEN_COLORS: Record<string, string> = {
   ETH: 'bg-indigo-600',
   BSC: 'bg-yellow-600',
@@ -229,6 +233,17 @@ export default function App() {
 
   const handleConfirm = useCallback(async () => {
     if (!externalAccount || !internalAccount || !selectedOption) return;
+    const expectedExternalChain = normalizeChainId(selectedOption.externalChain);
+    if (normalizeIdForCompare(externalAccount.chain) !== normalizeIdForCompare(expectedExternalChain)) {
+      setError(t('error.accountChainMismatch'));
+      setRechargeStep('connect');
+      return;
+    }
+    if (normalizeIdForCompare(internalAccount.chain) !== normalizeIdForCompare(selectedOption.internalChain)) {
+      setError(t('error.accountChainMismatch'));
+      setRechargeStep('connect');
+      return;
+    }
     const tokenAddress = selectedOption.externalInfo.contract?.trim();
     let effectiveExternalDecimals = resolvedExternalDecimals;
     if (tokenAddress && effectiveExternalDecimals === undefined) {
@@ -281,6 +296,15 @@ export default function App() {
     setAmount('');
     setError(null);
     forgeHook.reset();
+  }, [forgeHook]);
+
+  const handleReconnectAccounts = useCallback(() => {
+    setExternalAccount(null);
+    setInternalAccount(null);
+    setAmount('');
+    setError(null);
+    forgeHook.reset();
+    setRechargeStep('connect');
   }, [forgeHook]);
 
   // Group options by external chain for picker
@@ -577,14 +601,24 @@ export default function App() {
                   )}
 
                   <div className="mt-auto pt-4">
-                    <Button
-                      data-testid="preview-button"
-                      className="h-12 w-full"
-                      onClick={handlePreview}
-                      disabled={!amount || parseFloat(amount) <= 0}
-                    >
-                      {t('forge.preview')}
-                    </Button>
+                    <div className="space-y-2">
+                      <Button
+                        data-testid="preview-button"
+                        className="h-12 w-full"
+                        onClick={handlePreview}
+                        disabled={!amount || parseFloat(amount) <= 0}
+                      >
+                        {t('forge.preview')}
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        className="h-10 w-full"
+                        data-testid="reconnect-button"
+                        onClick={handleReconnectAccounts}
+                      >
+                        {t('forge.changeWallets')}
+                      </Button>
+                    </div>
                   </div>
                 </motion.div>
               )}
@@ -637,6 +671,20 @@ export default function App() {
                   <Card>
                     <CardContent className="space-y-3 py-4 text-sm">
                       <div className="flex justify-between">
+                        <span className="text-muted-foreground">{t('forge.sender')}</span>
+                        <span className="max-w-36 truncate font-mono text-xs">
+                          {externalAccount?.address}
+                        </span>
+                      </div>
+                      <Separator />
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">{t('forge.receiver')}</span>
+                        <span className="max-w-36 truncate font-mono text-xs">
+                          {internalAccount?.address}
+                        </span>
+                      </div>
+                      <Separator />
+                      <div className="flex justify-between">
                         <span className="text-muted-foreground">{t('forge.ratio')}</span>
                         <span>{t('forge.ratioValue')}</span>
                       </div>
@@ -677,14 +725,24 @@ export default function App() {
                   </Card>
 
                   <div className="mt-auto pt-4">
-                    <Button
-                      data-testid="confirm-button"
-                      className="h-12 w-full"
-                      onClick={handleConfirm}
-                      disabled={loading}
-                    >
-                      {t('forge.confirm')}
-                    </Button>
+                    <div className="space-y-2">
+                      <Button
+                        data-testid="confirm-button"
+                        className="h-12 w-full"
+                        onClick={handleConfirm}
+                        disabled={loading}
+                      >
+                        {t('forge.confirm')}
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        className="h-10 w-full"
+                        data-testid="reconnect-button"
+                        onClick={handleReconnectAccounts}
+                      >
+                        {t('forge.changeWallets')}
+                      </Button>
+                    </div>
                   </div>
                 </motion.div>
               )}
