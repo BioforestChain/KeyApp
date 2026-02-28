@@ -251,8 +251,6 @@ describe('Forge App', () => {
 
     fireEvent.click(screen.getByTestId('reconnect-button'))
 
-    await waitFor(() => {
-      expect(screen.getByTestId('connect-button')).toBeInTheDocument()
-    })
+    await screen.findByTestId('connect-button', undefined, { timeout: 5000 })
   })
 })
