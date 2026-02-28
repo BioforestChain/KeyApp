@@ -3,6 +3,11 @@ import { ChainErrorCodes, ChainServiceError } from '@/services/chain-adapter/typ
 
 const MINIAPP_TRANSFER_UNSUPPORTED_PIPELINE = 'MINIAPP_TRANSFER_UNSUPPORTED_PIPELINE';
 
+export type MiniappTransferErrorFeedback = {
+  message: string;
+  detail: string | null;
+};
+
 function isTimeoutMessage(message: string): boolean {
   return /timeout|timed out|etimedout|aborterror|aborted/i.test(message);
 }
@@ -71,6 +76,37 @@ function withBroadcastReason(baseMessage: string, reason: string | null): string
   return `${baseMessage}: ${reason}`;
 }
 
+function extractRawErrorDetail(error: unknown): string | null {
+  const [firstMessage] = collectErrorMessages(error);
+  if (!firstMessage) {
+    return null;
+  }
+  const trimmed = firstMessage.trim();
+  if (!trimmed) {
+    return null;
+  }
+  return trimmed;
+}
+
+function extractParsedErrorDetail(error: unknown): string | null {
+  const broadcastReason = extractBroadcastFailureReason(error);
+  if (broadcastReason) {
+    return broadcastReason;
+  }
+
+  const messages = collectErrorMessages(error)
+    .map((message) => message.trim())
+    .filter((message) => message.length > 0);
+  if (messages.length === 0) {
+    return null;
+  }
+
+  const [firstMeaningfulMessage] = messages.filter(
+    (message) => !isGenericBroadcastFailureMessage(message) && !isBroadcastFailedMessage(message),
+  );
+  return firstMeaningfulMessage ?? messages[0] ?? null;
+}
+
 export function createMiniappUnsupportedPipelineError(chainId: string): ChainServiceError {
   return new ChainServiceError(ChainErrorCodes.NOT_SUPPORTED, MINIAPP_TRANSFER_UNSUPPORTED_PIPELINE, {
     scope: 'miniapp-transfer',
@@ -78,66 +114,131 @@ export function createMiniappUnsupportedPipelineError(chainId: string): ChainSer
   });
 }
 
-export function mapMiniappTransferErrorToMessage(t: TFunction, error: unknown, chainId: string): string {
+export function resolveMiniappTransferErrorFeedback(
+  t: TFunction,
+  error: unknown,
+  chainId: string,
+): MiniappTransferErrorFeedback {
+  let message: string | null = null;
   if (error instanceof ChainServiceError) {
     if (error.code === ChainErrorCodes.NOT_SUPPORTED && error.message === MINIAPP_TRANSFER_UNSUPPORTED_PIPELINE) {
-      return t('common:miniappTransferUnsupportedPipeline', { chainId });
+      message = t('common:miniappTransferUnsupportedPipeline', { chainId });
+      return {
+        message,
+        detail: extractRawErrorDetail(error),
+      };
     }
 
     if (error.code === ChainErrorCodes.TRANSACTION_TIMEOUT) {
-      return t('transaction:broadcast.timeout');
+      message = t('transaction:broadcast.timeout');
+      return {
+        message,
+        detail: extractParsedErrorDetail(error) ?? extractRawErrorDetail(error),
+      };
     }
 
     if (error.code === ChainErrorCodes.TX_BROADCAST_FAILED) {
       if (hasTimeoutMessageInError(error)) {
-        return t('transaction:broadcast.timeout');
+        message = t('transaction:broadcast.timeout');
+        return {
+          message,
+          detail: extractParsedErrorDetail(error) ?? extractRawErrorDetail(error),
+        };
       }
-      return withBroadcastReason(t('transaction:broadcast.failed'), extractBroadcastFailureReason(error));
+      message = withBroadcastReason(t('transaction:broadcast.failed'), extractBroadcastFailureReason(error));
+      return {
+        message,
+        detail: extractParsedErrorDetail(error) ?? extractRawErrorDetail(error),
+      };
     }
 
     if (error.code === ChainErrorCodes.TX_BUILD_FAILED) {
       const reason = typeof error.details?.reason === 'string' ? error.details.reason.trim() : '';
       const displayMessage = reason || error.message;
       if (isSelfTransferMessage(displayMessage)) {
-        return t('error:validation.cannotTransferToSelf');
+        message = t('error:validation.cannotTransferToSelf');
+        return {
+          message,
+          detail: extractParsedErrorDetail(error) ?? extractRawErrorDetail(error),
+        };
       }
       if (displayMessage) {
-        return displayMessage;
+        message = displayMessage;
+        return {
+          message,
+          detail: extractParsedErrorDetail(error) ?? extractRawErrorDetail(error),
+        };
       }
     }
 
     if (error.code === ChainErrorCodes.NETWORK_ERROR) {
       if (hasTimeoutMessageInError(error)) {
-        return t('transaction:broadcast.timeout');
+        message = t('transaction:broadcast.timeout');
+        return {
+          message,
+          detail: extractParsedErrorDetail(error) ?? extractRawErrorDetail(error),
+        };
       }
       if (hasBroadcastFailedMessageInError(error)) {
-        return withBroadcastReason(t('transaction:broadcast.failed'), extractBroadcastFailureReason(error));
+        message = withBroadcastReason(t('transaction:broadcast.failed'), extractBroadcastFailureReason(error));
+        return {
+          message,
+          detail: extractParsedErrorDetail(error) ?? extractRawErrorDetail(error),
+        };
       }
     }
   }
 
   if (error instanceof Error) {
     if (error.message === MINIAPP_TRANSFER_UNSUPPORTED_PIPELINE) {
-      return t('common:miniappTransferUnsupportedPipeline', { chainId });
+      message = t('common:miniappTransferUnsupportedPipeline', { chainId });
+      return {
+        message,
+        detail: extractRawErrorDetail(error),
+      };
     }
 
     if (hasTimeoutMessageInError(error)) {
-      return t('transaction:broadcast.timeout');
+      message = t('transaction:broadcast.timeout');
+      return {
+        message,
+        detail: extractParsedErrorDetail(error) ?? extractRawErrorDetail(error),
+      };
     }
 
     if (hasBroadcastFailedMessageInError(error)) {
-      return withBroadcastReason(t('transaction:broadcast.failed'), extractBroadcastFailureReason(error));
+      message = withBroadcastReason(t('transaction:broadcast.failed'), extractBroadcastFailureReason(error));
+      return {
+        message,
+        detail: extractParsedErrorDetail(error) ?? extractRawErrorDetail(error),
+      };
     }
 
     if (isSelfTransferMessage(error.message)) {
-      return t('error:validation.cannotTransferToSelf');
+      message = t('error:validation.cannotTransferToSelf');
+      return {
+        message,
+        detail: extractParsedErrorDetail(error) ?? extractRawErrorDetail(error),
+      };
     }
 
     const [firstMessage] = collectErrorMessages(error);
     if (firstMessage) {
-      return firstMessage;
+      message = firstMessage;
+      return {
+        message,
+        detail: extractParsedErrorDetail(error) ?? extractRawErrorDetail(error),
+      };
     }
   }
 
-  return t('transaction:broadcast.unknown');
+  message = t('transaction:broadcast.unknown');
+  return {
+    message,
+    detail: extractParsedErrorDetail(error) ?? extractRawErrorDetail(error),
+  };
+}
+
+export function mapMiniappTransferErrorToMessage(t: TFunction, error: unknown, chainId: string): string {
+  return resolveMiniappTransferErrorFeedback(t, error, chainId).message;
 }

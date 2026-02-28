@@ -26,7 +26,7 @@ import { useToast } from '@/services';
 import { superjson } from '@biochain/chain-effect';
 import { Amount } from '@/types/amount';
 import { findMiniappWalletIdByAddress, resolveMiniappChainId } from './miniapp-wallet';
-import { createMiniappUnsupportedPipelineError, mapMiniappTransferErrorToMessage } from './miniapp-transfer-error';
+import { createMiniappUnsupportedPipelineError, resolveMiniappTransferErrorFeedback } from './miniapp-transfer-error';
 import { parseMiniappTransferAmountRaw } from './miniapp-transfer-amount';
 import type { SignedTransaction, UnsignedTransaction } from '@/services/ecosystem';
 import {
@@ -163,6 +163,7 @@ function MiniappTransferConfirmJobContent() {
   const [patternError, setPatternError] = useState(false);
   const [twoStepSecretError, setTwoStepSecretError] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [errorDetail, setErrorDetail] = useState<string | null>(null);
   const [phase, setPhase] = useState<TransferPhase>('idle');
   const [successCountdown, setSuccessCountdown] = useState<number | null>(null);
   const [requiresTwoStepSecret, setRequiresTwoStepSecret] = useState(false);
@@ -275,6 +276,7 @@ function MiniappTransferConfirmJobContent() {
     setTwoStepSecret('');
     setTwoStepSecretError(false);
     setErrorMessage(null);
+    setErrorDetail(null);
   }, []);
 
   useEffect(() => {
@@ -533,25 +535,27 @@ function MiniappTransferConfirmJobContent() {
 
   const handlePatternChange = useCallback(
     (nextPattern: number[]) => {
-      if (patternError || errorMessage || twoStepSecretError) {
+      if (patternError || errorMessage || twoStepSecretError || errorDetail) {
         setPatternError(false);
         setTwoStepSecretError(false);
         setErrorMessage(null);
+        setErrorDetail(null);
       }
       setPattern(nextPattern);
     },
-    [patternError, errorMessage, twoStepSecretError],
+    [patternError, errorMessage, twoStepSecretError, errorDetail],
   );
 
   const handleTwoStepSecretChange = useCallback(
     (value: string) => {
-      if (twoStepSecretError || errorMessage) {
+      if (twoStepSecretError || errorMessage || errorDetail) {
         setTwoStepSecretError(false);
         setErrorMessage(null);
+        setErrorDetail(null);
       }
       setTwoStepSecret(value);
     },
-    [twoStepSecretError, errorMessage],
+    [twoStepSecretError, errorMessage, errorDetail],
   );
 
   const performTransfer = useCallback(
@@ -644,7 +648,7 @@ function MiniappTransferConfirmJobContent() {
 
   const handleTransferFailure = useCallback(
     (error: unknown, inputStep: TransferInputStep) => {
-      const mappedError = mapMiniappTransferErrorToMessage(t, error, resolvedChainId);
+      const { message: mappedError, detail: mappedErrorDetail } = resolveMiniappTransferErrorFeedback(t, error, resolvedChainId);
       if (isBackgroundBroadcastRef.current) {
         if (isMountedRef.current) {
           setStep(inputStep);
@@ -674,6 +678,7 @@ function MiniappTransferConfirmJobContent() {
         setPatternError(true);
         setTwoStepSecretError(false);
         setErrorMessage(t('walletLock.error'));
+        setErrorDetail(null);
         setStep('wallet_lock');
         setPattern([]);
         return;
@@ -683,6 +688,7 @@ function MiniappTransferConfirmJobContent() {
         setPatternError(false);
         setTwoStepSecretError(true);
         setErrorMessage(t('transaction:sendPage.twoStepSecretError'));
+        setErrorDetail(null);
         setStep('two_step_secret');
         return;
       }
@@ -690,6 +696,7 @@ function MiniappTransferConfirmJobContent() {
       setPatternError(false);
       setTwoStepSecretError(false);
       setErrorMessage(mappedError);
+      setErrorDetail(mappedErrorDetail);
       setStep(inputStep);
 
       if (inputStep === 'wallet_lock') {
@@ -716,6 +723,7 @@ function MiniappTransferConfirmJobContent() {
       setPatternError(false);
       setTwoStepSecretError(false);
       setErrorMessage(null);
+      setErrorDetail(null);
 
       try {
         const result = await performTransfer(password, paySecret);
@@ -843,6 +851,9 @@ function MiniappTransferConfirmJobContent() {
     emitSheetClosed('cancel');
     pop();
   }, [emitSheetClosed, emitTransferResult, handleSuccessClose, isBroadcasting, isBuilding, isSuccess, logTransferSheet, moveToBackgroundBroadcast, pop]);
+
+  const walletLockServiceMessage = !patternError && errorMessage ? errorMessage : null;
+  const walletLockErrorDetail = !patternError ? errorDetail : null;
 
   return (
     <BottomSheet onCancel={handleCancel}>
@@ -1019,11 +1030,14 @@ function MiniappTransferConfirmJobContent() {
                 disabled={isBusy || !walletId}
                 error={patternError}
                 errorText={patternError ? t('walletLock.error') : undefined}
+                hintText={walletLockServiceMessage ?? undefined}
+                hintTone={walletLockServiceMessage ? 'destructive' : 'default'}
+                footerText={
+                  walletLockErrorDetail
+                    ? `${t('common:service.technicalDetails')}: ${walletLockErrorDetail}`
+                    : undefined
+                }
               />
-
-              {errorMessage && !patternError && (
-                <div data-testid="miniapp-transfer-error" className="bg-destructive/10 text-destructive rounded-xl p-3 text-sm">{errorMessage}</div>
-              )}
 
               {isBuilding && (
                 <div
