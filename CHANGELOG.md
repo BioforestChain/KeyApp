@@ -1,5 +1,11 @@
 # 更新日志
 
+## [1.0.15] - 2026-02-28
+
+fix miniapp alias balance handling
+
+<!-- last-commit: 82e3aea9ca4e65f7e706b8f396670dd105b40f2a -->
+
 ## [1.0.14] - 2026-02-28
 
 fix: enforce genesisBlock magic source in bioforest api

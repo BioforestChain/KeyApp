@@ -18,8 +18,8 @@
   "author": [
     "@bfmeta.info"
   ],
-  "version": "1.0.14",
-  "change_log": "fix: enforce genesisBlock magic source in bioforest api",
+  "version": "1.0.15",
+  "change_log": "fix miniapp alias balance handling",
   "categories": [
     "application",
     "wallet"
