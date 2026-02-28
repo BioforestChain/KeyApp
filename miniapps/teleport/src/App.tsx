@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import type { BioAccount, BioSignedTransaction, BioUnsignedTransaction } from '@biochain/bio-sdk';
+import { normalizeChainId, type BioAccount, type BioSignedTransaction, type BioUnsignedTransaction } from '@biochain/bio-sdk';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -212,6 +212,18 @@ const CHAIN_COLORS: Record<string, string> = {
 const normalizeInternalChainName = (value: string): InternalChainName =>
   value.toUpperCase() as InternalChainName;
 
+const normalizeTeleportChain = (value: string | null | undefined): string => {
+  const normalized = value?.trim();
+  if (!normalized) return '';
+  return normalizeChainId(normalized);
+};
+
+const isSameTeleportChain = (left: string | null | undefined, right: string | null | undefined): boolean => {
+  const normalizedLeft = normalizeTeleportChain(left);
+  const normalizedRight = normalizeTeleportChain(right);
+  return normalizedLeft.length > 0 && normalizedLeft === normalizedRight;
+};
+
 const normalizeInputAmount = (value: string, decimals: number): string => {
   const normalized = value.trim();
   if (!/^\d+(\.\d+)?$/.test(normalized)) {
@@ -312,7 +324,7 @@ export default function App() {
     if (!assets || !sourceAccount) return [];
     const sourceChain = selectedSourceChain ?? sourceAccount.chain;
     return assets
-      .filter((asset) => asset.chain.toLowerCase() === sourceChain.toLowerCase())
+      .filter((asset) => isSameTeleportChain(asset.chain, sourceChain))
       .map((asset) => ({
         ...asset,
         balance: formatRawBalance(
@@ -365,8 +377,17 @@ export default function App() {
       });
       setSourceAccount(account);
       const accountChain = account.chain || portalChain;
-      const chainAssets = (assets ?? []).filter((asset) => asset.chain.toLowerCase() === accountChain.toLowerCase());
+      const sourceAssetChain = portalChain;
+      const chainAssetsByPortal = (assets ?? []).filter(
+        (asset) => isSameTeleportChain(asset.chain, sourceAssetChain),
+      );
+      const chainAssets =
+        chainAssetsByPortal.length > 0
+          ? chainAssetsByPortal
+          : (assets ?? []).filter((asset) => isSameTeleportChain(asset.chain, accountChain));
       const uniqueAssetTypes = [...new Set(chainAssets.map((asset) => asset.assetType.toUpperCase()))];
+      const balanceQueryChain =
+        normalizeTeleportChain(account.chain) || normalizeTeleportChain(portalChain);
 
       if (uniqueAssetTypes.length > 0) {
         const balanceEntries = await Promise.all(
@@ -374,7 +395,7 @@ export default function App() {
             try {
               const rawBalance = await bio.request<string>({
                 method: 'bio_getBalance',
-                params: [{ address: account.address, chain: account.chain, asset: assetType }],
+                params: [{ address: account.address, chain: balanceQueryChain, asset: assetType }],
               });
               return [assetType, rawBalance] as const;
             } catch {
@@ -413,7 +434,7 @@ export default function App() {
     if (!window.bio || !sourceAccount || !selectedAsset) return;
     setLoading(true);
     setError(null);
-    const shouldExcludeSameAddress = sourceAccount.chain.toLowerCase() === selectedAsset.targetChain.toLowerCase();
+    const shouldExcludeSameAddress = isSameTeleportChain(sourceAccount.chain, selectedAsset.targetChain);
     try {
       const account = await window.bio.request<BioAccount>({
         method: 'bio_pickWallet',
@@ -446,12 +467,12 @@ export default function App() {
         assetType: selectedAsset.targetAsset,
       };
 
-      const chainLower = sourceAccount.chain.toLowerCase();
+      const sourceChain = normalizeTeleportChain(sourceAccount.chain);
       const isInternalChain =
-        chainLower !== 'eth' &&
-        chainLower !== 'bsc' &&
-        chainLower !== 'tron' &&
-        chainLower !== 'trc20';
+        sourceChain !== 'ethereum' &&
+        sourceChain !== 'binance' &&
+        sourceChain !== 'tron' &&
+        sourceChain !== 'trc20';
 
       const remark = isInternalChain
         ? {
@@ -492,12 +513,12 @@ export default function App() {
       // 4. 构造 fromTrJson（根据链类型）
       // 注意：EVM 需要 raw signed tx 的 hex；TRON/内链需要结构化交易体
       const fromTrJson: FromTrJson = {};
-      const isTronChain = chainLower === 'tron' || chainLower === 'trc20';
-      const isTrc20 = chainLower === 'trc20' || (chainLower === 'tron' && !!selectedAsset.contractAddress);
+      const isTronChain = sourceChain === 'tron' || sourceChain === 'trc20';
+      const isTrc20 = sourceChain === 'trc20' || (sourceChain === 'tron' && !!selectedAsset.contractAddress);
 
-      if (chainLower === 'eth') {
+      if (sourceChain === 'ethereum') {
         fromTrJson.eth = { signTransData: extractEvmSignedTxData(signedTx.data, 'ETH') };
-      } else if (chainLower === 'bsc') {
+      } else if (sourceChain === 'binance') {
         fromTrJson.bsc = { signTransData: extractEvmSignedTxData(signedTx.data, 'BSC') };
       } else if (isTronChain) {
         if (isTrc20) {

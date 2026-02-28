@@ -4,9 +4,12 @@
 
 import type { MethodHandler, BioAccount } from '../types'
 import { BioErrorCodes } from '../types'
+import { normalizeChainId } from '@biochain/bio-sdk'
 import { HandlerContext } from './context'
 import { enqueueMiniappSheet } from '../sheet-queue'
 import { getChainProvider } from '@/services/chain-adapter/providers'
+import { chainConfigService } from '@/services/chain-config/service'
+import { chainConfigActions, chainConfigStore } from '@/stores/chain-config'
 import { walletStore } from '@/stores/wallet'
 
 // 兼容旧 API，逐步迁移到 HandlerContext
@@ -121,25 +124,111 @@ export const handleChainId: MethodHandler = async (_params, _context) => {
 
 /** bio_getBalance - Get balance */
 export const handleGetBalance: MethodHandler = async (params, _context) => {
-  const opts = params as { address?: string; chain?: string; asset?: string } | undefined
+  const opts = params as
+    | {
+        address?: string
+        chain?: string
+        asset?: string
+        assets?: Array<{ assetType?: string; contractAddress?: string }>
+      }
+    | undefined
   if (!opts?.address || !opts?.chain) {
     throw Object.assign(new Error('Missing address or chain'), { code: BioErrorCodes.INVALID_PARAMS })
   }
 
-  const provider = getChainProvider(opts.chain)
+  const resolvedChain = normalizeChainId(opts.chain)
   const wantedAsset = opts.asset?.trim().toUpperCase()
+  const wantedAssets = Array.isArray(opts.assets) ? opts.assets : []
+
+  if (!chainConfigStore.state.snapshot) {
+    await chainConfigActions.initialize()
+  }
+
+  const provider = getChainProvider(resolvedChain)
+
+  const buildBatchFallback = () => {
+    const defaultDecimals = chainConfigService.getDecimals(resolvedChain)
+    const fallback: Record<
+      string,
+      {
+        assetType: string
+        decimals: number
+        balance: string
+        contracts?: string
+        contractAddress?: string
+      }
+    > = {}
+
+    for (const item of wantedAssets) {
+      const requestedAssetType = item.assetType?.trim().toUpperCase()
+      if (!requestedAssetType) continue
+      fallback[requestedAssetType] = {
+        assetType: requestedAssetType,
+        decimals: defaultDecimals,
+        balance: '0',
+        ...(item.contractAddress
+          ? { contracts: item.contractAddress, contractAddress: item.contractAddress }
+          : {}),
+      }
+    }
+    return fallback
+  }
 
   try {
+    if (wantedAssets.length > 0) {
+      const balances = await provider.allBalances.fetch({ address: opts.address })
+      const defaultDecimals = chainConfigService.getDecimals(resolvedChain)
+
+      const result: Record<
+        string,
+        {
+          assetType: string
+          decimals: number
+          balance: string
+          contracts?: string
+          contractAddress?: string
+        }
+      > = {}
+
+      for (const item of wantedAssets) {
+        const requestedAssetType = item.assetType?.trim().toUpperCase()
+        if (!requestedAssetType) continue
+        const requestedContract = item.contractAddress?.trim().toLowerCase()
+
+        const matched = balances.find((balanceItem) => {
+          if (requestedContract) {
+            return (balanceItem.contractAddress?.toLowerCase() ?? '') === requestedContract
+          }
+          return balanceItem.symbol.toUpperCase() === requestedAssetType
+        })
+
+        result[requestedAssetType] = {
+          assetType: requestedAssetType,
+          decimals: matched?.decimals ?? defaultDecimals,
+          balance: matched?.amount.toRawString() ?? '0',
+          ...(item.contractAddress
+            ? { contracts: item.contractAddress, contractAddress: item.contractAddress }
+            : {}),
+        }
+      }
+      return result
+    }
+
     if (wantedAsset) {
       const balances = await provider.allBalances.fetch({ address: opts.address })
       const matched = balances.find((item) => item.symbol.toUpperCase() === wantedAsset)
-      return matched?.amount.toRawString() ?? '0'
+      const raw = matched?.amount.toRawString() ?? '0'
+      return raw
     }
 
     // 使用 ChainProvider 的 nativeBalance fetcher
     const balance = await provider.nativeBalance.fetch({ address: opts.address })
-    return balance?.amount.toRawString() ?? '0'
+    const raw = balance?.amount.toRawString() ?? '0'
+    return raw
   } catch {
+    if (wantedAssets.length > 0) {
+      return buildBatchFallback()
+    }
     return '0'
   }
 }
