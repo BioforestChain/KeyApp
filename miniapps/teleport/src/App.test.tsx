@@ -236,6 +236,62 @@ describe('Teleport App', () => {
     expect(screen.getByText(/0 NBT 可用/)).toBeInTheDocument()
   })
 
+  it('should query balances by portal chain assets when account chain is alias', async () => {
+    const mockedGetTransmitAssetTypeList = vi.mocked(getTransmitAssetTypeList)
+    mockedGetTransmitAssetTypeList.mockResolvedValueOnce({
+      transmitSupport: {
+        BFMCHAIN: {
+          BFM: {
+            enable: true,
+            isAirdrop: false,
+            assetType: 'BFM',
+            recipientAddress: 'bReceiver',
+            targetChain: 'BFMETAV2',
+            targetAsset: 'BDT',
+            ratio: { numerator: 1, denominator: 250 },
+            transmitDate: {
+              startDate: '2020-01-01',
+              endDate: '2030-12-31',
+            },
+          },
+        },
+      },
+    })
+
+    mockBio.request.mockImplementation(
+      ({ method, params }: { method: string; params?: Array<{ chain?: string; asset?: string }> }) => {
+        if (method === 'bio_selectAccount') {
+          return Promise.resolve({ address: 'bSource', chain: 'bfmeta', name: 'Source' })
+        }
+        if (method === 'bio_getBalance') {
+          return Promise.resolve('99991361')
+        }
+        if (method === 'bio_closeSplashScreen') {
+          return Promise.resolve(null)
+        }
+        return Promise.resolve(null)
+      },
+    )
+
+    render(<App />, { wrapper: createWrapper() })
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: '启动 BFMCHAIN 传送门' })).toBeInTheDocument()
+    })
+
+    fireEvent.click(screen.getByRole('button', { name: '启动 BFMCHAIN 传送门' }))
+
+    await waitFor(() => {
+      expect(screen.getByTestId('asset-card-BFM')).toBeInTheDocument()
+    })
+
+    expect(mockBio.request).toHaveBeenCalledWith({
+      method: 'bio_getBalance',
+      params: [{ address: 'bSource', chain: 'bfmeta', asset: 'BFM' }],
+    })
+    expect(screen.getByText(/0\.99991361 BFM 可用/)).toBeInTheDocument()
+  })
+
   it('should not exclude source address when selecting cross-chain target wallet', async () => {
     mockBio.request.mockImplementation(({ method, params }: { method: string; params?: Array<{ chain?: string }> }) => {
       if (method === 'bio_selectAccount') {
@@ -280,6 +336,75 @@ describe('Teleport App', () => {
       expect(mockBio.request).toHaveBeenCalledWith({
         method: 'bio_pickWallet',
         params: [{ chain: 'BFMCHAIN' }],
+      })
+    })
+  })
+
+  it('should exclude source address when selecting same-chain target wallet through alias', async () => {
+    const mockedGetTransmitAssetTypeList = vi.mocked(getTransmitAssetTypeList)
+    mockedGetTransmitAssetTypeList.mockResolvedValueOnce({
+      transmitSupport: {
+        BFMCHAIN: {
+          BFM: {
+            enable: true,
+            isAirdrop: false,
+            assetType: 'BFM',
+            recipientAddress: 'bReceiver',
+            targetChain: 'BFMCHAIN',
+            targetAsset: 'BFM',
+            ratio: { numerator: 1, denominator: 1 },
+            transmitDate: {
+              startDate: '2020-01-01',
+              endDate: '2030-12-31',
+            },
+          },
+        },
+      },
+    })
+
+    mockBio.request.mockImplementation(({ method }: { method: string }) => {
+      if (method === 'bio_selectAccount') {
+        return Promise.resolve({ address: 'bSource', chain: 'bfmeta', name: 'Source' })
+      }
+      if (method === 'bio_getBalance') {
+        return Promise.resolve('100000000')
+      }
+      if (method === 'bio_pickWallet') {
+        return Promise.resolve({ address: 'bTarget', chain: 'bfmeta', name: 'Target' })
+      }
+      if (method === 'bio_closeSplashScreen') {
+        return Promise.resolve(null)
+      }
+      return Promise.resolve(null)
+    })
+
+    render(<App />, { wrapper: createWrapper() })
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: '启动 BFMCHAIN 传送门' })).toBeInTheDocument()
+    })
+
+    fireEvent.click(screen.getByRole('button', { name: '启动 BFMCHAIN 传送门' }))
+
+    await waitFor(() => {
+      expect(screen.getByTestId('asset-card-BFM')).toBeInTheDocument()
+    })
+
+    fireEvent.click(screen.getByTestId('asset-card-BFM'))
+    await waitFor(() => {
+      expect(screen.getByTestId('amount-input')).toBeInTheDocument()
+    })
+    fireEvent.change(screen.getByTestId('amount-input'), { target: { value: '1' } })
+    fireEvent.click(screen.getByTestId('next-button'))
+    await waitFor(() => {
+      expect(screen.getByTestId('target-button')).toBeInTheDocument()
+    })
+    fireEvent.click(screen.getByTestId('target-button'))
+
+    await waitFor(() => {
+      expect(mockBio.request).toHaveBeenCalledWith({
+        method: 'bio_pickWallet',
+        params: [{ chain: 'BFMCHAIN', exclude: 'bSource' }],
       })
     })
   })
@@ -485,7 +610,7 @@ describe('Teleport App', () => {
     mockBio.request.mockImplementation(
       ({ method, params }: { method: string; params?: Array<{ chain?: string }> }) => {
         if (method === 'bio_selectAccount') {
-          return Promise.resolve({ address: '0xSourceBsc', chain: params?.[0]?.chain ?? 'BSC', name: 'Source' })
+          return Promise.resolve({ address: '0xSourceBsc', chain: 'binance', name: 'Source' })
         }
         if (method === 'bio_getBalance') {
           return Promise.resolve('1000000000')

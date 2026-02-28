@@ -1,6 +1,9 @@
 import { dwebServiceWorker, type ServiceWorkerFetchEvent } from '@plaoc/plugins'
+import { normalizeChainId } from '@biochain/bio-sdk'
 import { WALLET_PLAOC_PATH } from './paths'
 import type { CallerAppInfo, IPlaocAdapter } from './types'
+import { getChainProvider } from '@/services/chain-adapter/providers'
+import { chainConfigService } from '@/services/chain-config/service'
 
 type WireEnvelope<T> = Readonly<{ data: T }>
 
@@ -85,7 +88,7 @@ function parseAssetTypeBalancePayload(signaturedata: string): {
   return { chainName, senderAddress, assetTypes }
 }
 
-function computeAssetTypeBalances(req: ReturnType<typeof parseAssetTypeBalancePayload>): Record<
+async function computeAssetTypeBalances(req: ReturnType<typeof parseAssetTypeBalancePayload>): Promise<Record<
   string,
   {
     assetType: string
@@ -93,13 +96,12 @@ function computeAssetTypeBalances(req: ReturnType<typeof parseAssetTypeBalancePa
     balance: string
     contracts?: string
   }
-> {
+>> {
   if (!req) return {}
 
-  // tokens 数据已从 walletStore 移除 - 需要从 chain-provider 获取
-  // TODO: 使用 getChainProvider(req.chainName).tokenBalances 获取实时余额
-  // 目前返回所有请求的 assetType 的默认值
-
+  const resolvedChain = normalizeChainId(req.chainName)
+  const provider = getChainProvider(resolvedChain)
+  const defaultDecimals = chainConfigService.getDecimals(resolvedChain)
   const result: Record<
     string,
     {
@@ -110,13 +112,35 @@ function computeAssetTypeBalances(req: ReturnType<typeof parseAssetTypeBalancePa
     }
   > = {}
 
-  for (const reqAsset of req.assetTypes) {
-    const wantedAssetType = reqAsset.assetType
-    result[wantedAssetType] = {
-      assetType: wantedAssetType,
-      decimals: 0,
-      balance: '0',
-      ...(reqAsset.contractAddress ? { contracts: reqAsset.contractAddress } : {}),
+  try {
+    const balances = await provider.allBalances.fetch({ address: req.senderAddress })
+
+    for (const reqAsset of req.assetTypes) {
+      const wantedAssetType = reqAsset.assetType
+      const wantedAssetUpper = wantedAssetType.toUpperCase()
+      const wantedContract = reqAsset.contractAddress?.trim().toLowerCase()
+      const matched = balances.find((item) => {
+        if (wantedContract) {
+          return (item.contractAddress?.toLowerCase() ?? '') === wantedContract
+        }
+        return item.symbol.toUpperCase() === wantedAssetUpper
+      })
+
+      result[wantedAssetType] = {
+        assetType: wantedAssetType,
+        decimals: matched?.decimals ?? defaultDecimals,
+        balance: matched?.amount.toRawString() ?? '0',
+        ...(reqAsset.contractAddress ? { contracts: reqAsset.contractAddress } : {}),
+      }
+    }
+  } catch {
+    for (const reqAsset of req.assetTypes) {
+      result[reqAsset.assetType] = {
+        assetType: reqAsset.assetType,
+        decimals: defaultDecimals,
+        balance: '0',
+        ...(reqAsset.contractAddress ? { contracts: reqAsset.contractAddress } : {}),
+      }
     }
   }
 
@@ -155,7 +179,7 @@ async function handleAuthorizeFetch(event: ServiceWorkerFetchEvent): Promise<voi
 
     const fastPayload = signaturedata ? parseAssetTypeBalancePayload(signaturedata) : null
     if (fastPayload) {
-      const balances = computeAssetTypeBalances(fastPayload)
+      const balances = await computeAssetTypeBalances(fastPayload)
       await respondJson(event, [balances])
       return
     }
