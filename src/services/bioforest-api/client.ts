@@ -57,7 +57,8 @@ export interface BioForestApiClientConfig {
  * const block = await client.getLastBlock()
  * console.log(`Height: ${block.height}`)
  *
- * const balance = await client.getBalance('bXXX...', 'BFM')
+ * const magic = '...from genesisBlock.magic'
+ * const balance = await client.getBalance('bXXX...', 'BFM', magic)
  * console.log(`Balance: ${balance.amount}`)
  * ```
  */
@@ -172,12 +173,17 @@ export class BioForestApiClient {
    * Get account balance for a specific asset
    * @param address - Account address
    * @param assetType - Asset type (e.g., 'BFM')
-   * @param magic - Chain magic (default: 'nxOGQ' for mainnet)
+   * @param magic - Chain magic (必须来自 default-config 的 genesisBlock.magic)
    */
-  async getBalance(address: string, assetType: string, magic = 'nxOGQ'): Promise<BalanceInfo> {
+  async getBalance(address: string, assetType: string, magic: string): Promise<BalanceInfo> {
+    const chainMagic = magic.trim()
+    if (!chainMagic) {
+      throw new BioForestApiError('Chain magic is required. Use default-config genesisBlock.magic.')
+    }
+
     return this.post<BalanceInfo>('/address/balance', {
       address,
-      magic,
+      magic: chainMagic,
       assetType,
     })
   }
