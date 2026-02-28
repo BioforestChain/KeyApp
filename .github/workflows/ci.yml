@@ -110,13 +110,13 @@ jobs:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
 
-      - name: Install Playwright
+      - name: Install Playwright deps
         if: steps.changes.outputs.code == 'true' && steps.playwright-cache.outputs.cache-hit != 'true'
         run: pnpm exec playwright install --with-deps chromium webkit
 
-      - name: Install Playwright deps
-        if: steps.changes.outputs.code == 'true' && steps.playwright-cache.outputs.cache-hit == 'true'
-        run: pnpm exec playwright install-deps chromium webkit
+      - name: Ensure Playwright browsers
+        if: steps.changes.outputs.code == 'true'
+        run: pnpm exec playwright install chromium webkit
 
       - name: Run all checks
         env:
