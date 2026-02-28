@@ -44,6 +44,32 @@ type MiniappSignTransactionJobParams = {
 
 type SignStep = MiniappSignFlowStep;
 
+function collectErrorMessages(error: unknown): string[] {
+  const messages: string[] = [];
+  const visited = new Set<unknown>();
+  let current: unknown = error;
+
+  while (current instanceof Error && !visited.has(current)) {
+    visited.add(current);
+    if (current.message) {
+      messages.push(current.message);
+    }
+    current = (current as Error & { cause?: unknown }).cause;
+  }
+
+  return messages;
+}
+
+function extractSignErrorDetail(error: unknown): string | null {
+  for (const message of collectErrorMessages(error)) {
+    const normalized = message.trim();
+    if (normalized.length > 0) {
+      return normalized;
+    }
+  }
+  return null;
+}
+
 function MiniappSignTransactionJobContent() {
   const { t } = useTranslation('common');
   const { pop } = useFlow();
@@ -56,6 +82,7 @@ function MiniappSignTransactionJobContent() {
   const [patternError, setPatternError] = useState(false);
   const [twoStepSecretError, setTwoStepSecretError] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [errorDetail, setErrorDetail] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [requiresTwoStepSecret, setRequiresTwoStepSecret] = useState(false);
   const [isResolvingTwoStepSecret, setIsResolvingTwoStepSecret] = useState(true);
@@ -85,6 +112,7 @@ function MiniappSignTransactionJobContent() {
     setTwoStepSecret('');
     setTwoStepSecretError(false);
     setErrorMessage(null);
+    setErrorDetail(null);
   }, []);
 
   useEffect(() => {
@@ -120,25 +148,27 @@ function MiniappSignTransactionJobContent() {
 
   const handlePatternChange = useCallback(
     (nextPattern: number[]) => {
-      if (patternError || errorMessage || twoStepSecretError) {
+      if (patternError || errorMessage || twoStepSecretError || errorDetail) {
         setPatternError(false);
         setTwoStepSecretError(false);
         setErrorMessage(null);
+        setErrorDetail(null);
       }
       setPattern(nextPattern);
     },
-    [patternError, errorMessage, twoStepSecretError],
+    [patternError, errorMessage, twoStepSecretError, errorDetail],
   );
 
   const handleTwoStepSecretChange = useCallback(
     (value: string) => {
-      if (twoStepSecretError || errorMessage) {
+      if (twoStepSecretError || errorMessage || errorDetail) {
         setTwoStepSecretError(false);
         setErrorMessage(null);
+        setErrorDetail(null);
       }
       setTwoStepSecret(value);
     },
-    [twoStepSecretError, errorMessage],
+    [twoStepSecretError, errorMessage, errorDetail],
   );
 
   const performSign = useCallback(
@@ -180,6 +210,7 @@ function MiniappSignTransactionJobContent() {
       setPatternError(false);
       setTwoStepSecretError(false);
       setErrorMessage(null);
+      setErrorDetail(null);
 
       try {
         setStep('signing');
@@ -189,15 +220,20 @@ function MiniappSignTransactionJobContent() {
         if (isMiniappWalletLockError(error)) {
           setPatternError(true);
           setErrorMessage(t('walletLock.error'));
+          setErrorDetail(null);
+          setStep('wallet_lock');
         } else if (isMiniappTwoStepSecretError(error)) {
           setPatternError(false);
           setTwoStepSecretError(true);
           setErrorMessage(t('transaction:sendPage.twoStepSecretError'));
+          setErrorDetail(null);
           setStep('two_step_secret');
         } else {
           setPatternError(false);
           setTwoStepSecretError(false);
           setErrorMessage(t('signingFailed'));
+          setErrorDetail(extractSignErrorDetail(error));
+          setStep('wallet_lock');
         }
         setPattern([]);
       } finally {
@@ -216,6 +252,7 @@ function MiniappSignTransactionJobContent() {
     setIsSubmitting(true);
     setTwoStepSecretError(false);
     setErrorMessage(null);
+    setErrorDetail(null);
 
     try {
       setStep('signing');
@@ -225,14 +262,17 @@ function MiniappSignTransactionJobContent() {
       if (isMiniappTwoStepSecretError(error)) {
         setTwoStepSecretError(true);
         setErrorMessage(t('transaction:sendPage.twoStepSecretError'));
+        setErrorDetail(null);
         setStep('two_step_secret');
       } else if (isMiniappWalletLockError(error)) {
         setPatternError(true);
         setErrorMessage(t('walletLock.error'));
+        setErrorDetail(null);
         setStep('wallet_lock');
       } else {
         setTwoStepSecretError(false);
         setErrorMessage(t('signingFailed'));
+        setErrorDetail(extractSignErrorDetail(error));
         setStep('two_step_secret');
       }
     } finally {
@@ -260,6 +300,9 @@ function MiniappSignTransactionJobContent() {
       return String(unsignedTx.data);
     }
   }, [unsignedTx]);
+
+  const walletLockServiceMessage = !patternError && errorMessage ? errorMessage : null;
+  const walletLockErrorDetail = !patternError ? errorDetail : null;
 
   return (
     <BottomSheet onCancel={handleCancel}>
@@ -343,6 +386,7 @@ function MiniappSignTransactionJobContent() {
                 {t('cancel')}
               </button>
               <button
+                data-testid="miniapp-sign-review-confirm"
                 onClick={handleEnterWalletLockStep}
                 disabled={isSubmitting || !unsignedTx || !walletId || isResolvingTwoStepSecret}
                 className={cn(
@@ -372,11 +416,14 @@ function MiniappSignTransactionJobContent() {
                 disabled={isSubmitting || !walletId}
                 error={patternError}
                 errorText={patternError ? t('walletLock.error') : undefined}
+                hintText={walletLockServiceMessage ?? undefined}
+                hintTone={walletLockServiceMessage ? 'destructive' : 'default'}
+                footerText={
+                  walletLockErrorDetail
+                    ? `${t('common:service.technicalDetails')}: ${walletLockErrorDetail}`
+                    : undefined
+                }
               />
-
-              {errorMessage && !patternError && (
-                <div className="bg-destructive/10 text-destructive rounded-xl p-3 text-sm">{errorMessage}</div>
-              )}
 
               {isSubmitting && (
                 <div className="bg-muted text-muted-foreground flex items-center justify-center gap-2 rounded-xl p-3 text-sm">

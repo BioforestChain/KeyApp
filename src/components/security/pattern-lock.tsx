@@ -19,6 +19,12 @@ export interface PatternLockProps {
   success?: boolean;
   /** 错误提示文案（可选，覆盖默认错误文案） */
   errorText?: string;
+  /** 状态提示文案（可选，覆盖默认提示文案） */
+  hintText?: string;
+  /** 状态提示语气（仅在 hintText 生效时使用） */
+  hintTone?: 'default' | 'destructive' | 'primary';
+  /** 底部详情文案（可选） */
+  footerText?: string;
   /** 额外的 className */
   className?: string;
   /** 网格大小 (默认 3x3) */
@@ -51,6 +57,9 @@ export function PatternLock({
   error = false,
   success = false,
   errorText,
+  hintText,
+  hintTone = 'default',
+  footerText,
   className,
   size = 3,
   'data-testid': testId,
@@ -504,6 +513,19 @@ export function PatternLock({
           <p className="text-destructive text-sm">
             {errorText ?? t('patternLock.error')}
           </p>
+        ) : hintText ? (
+          <p
+            className={cn(
+              'text-sm',
+              hintTone === 'destructive'
+                ? 'text-destructive'
+                : hintTone === 'primary'
+                  ? 'text-primary'
+                  : 'text-muted-foreground',
+            )}
+          >
+            {hintText}
+          </p>
         ) : selectedNodes.length === 0 ? (
           <p className="text-muted-foreground text-sm">
             {t('patternLock.hint', { min: minPoints })}
@@ -525,7 +547,9 @@ export function PatternLock({
 
       {/* 清除按钮 - 固定高度避免布局抖动 */}
       <div className="h-5">
-        {selectedNodes.length > 0 && !disabled && !isErrorAnimating && (
+        {footerText ? (
+          <p className="text-destructive/80 truncate text-left text-xs">{footerText}</p>
+        ) : selectedNodes.length > 0 && !disabled && !isErrorAnimating ? (
           <button
             type="button"
             onClick={handleClear}
@@ -534,7 +558,7 @@ export function PatternLock({
           >
             {t('patternLock.clear')}
           </button>
-        )}
+        ) : null}
       </div>
     </div>
   );

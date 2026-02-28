@@ -79,14 +79,26 @@ vi.mock('@/components/wallet/chain-address-display', () => ({
 }));
 
 vi.mock('@/components/security/pattern-lock', () => ({
-  PatternLock: ({ onComplete }: { onComplete?: (nodes: number[]) => void }) => (
-    <button
-      type="button"
-      data-testid="pattern-lock"
-      onClick={() => onComplete?.([1, 2, 3, 4])}
-    >
-      pattern
-    </button>
+  PatternLock: ({
+    onComplete,
+    hintText,
+    footerText,
+  }: {
+    onComplete?: (nodes: number[]) => void;
+    hintText?: string;
+    footerText?: string;
+  }) => (
+    <div>
+      <button
+        type="button"
+        data-testid="pattern-lock"
+        onClick={() => onComplete?.([1, 2, 3, 4])}
+      >
+        pattern
+      </button>
+      <span data-testid="pattern-lock-hint">{hintText ?? ''}</span>
+      <span data-testid="pattern-lock-footer">{footerText ?? ''}</span>
+    </div>
   ),
   patternToString: (nodes: number[]) => nodes.join(''),
 }));
@@ -225,6 +237,39 @@ describe('miniapp confirm jobs regressions', () => {
     ).not.toThrow();
 
     expect(screen.getByTestId('miniapp-sheet-header')).toBeInTheDocument();
+  });
+
+  it('shows sign service feedback in pattern hint and detail footer', async () => {
+    vi.mocked(signUnsignedTransaction).mockRejectedValueOnce(new Error('sign service timeout'));
+
+    render(
+      <MiniappSignTransactionJob
+        params={{
+          appName: 'Org App',
+          appIcon: '',
+          from: 'b_sender_1',
+          chain: 'BFMetaV2',
+          unsignedTx: superjson.stringify({
+            chainId: 'bfmetav2',
+            intentType: 'transfer',
+            data: { tx: 'unsigned' },
+          }),
+        }}
+      />,
+    );
+
+    const signButton = screen.getByTestId('miniapp-sign-review-confirm');
+    await waitFor(() => {
+      expect(signButton).not.toBeDisabled();
+    });
+
+    fireEvent.click(signButton);
+    fireEvent.click(screen.getByTestId('pattern-lock'));
+
+    await waitFor(() => {
+      expect(screen.getByTestId('pattern-lock-hint').textContent?.length).toBeGreaterThan(0);
+    });
+    expect(screen.getByTestId('pattern-lock-footer').textContent).toContain('sign service timeout');
   });
 
   it('does not pass raw amount directly to display layer', () => {
@@ -1047,7 +1092,10 @@ describe('miniapp confirm jobs regressions', () => {
     fireEvent.click(confirmButton);
     fireEvent.click(screen.getByTestId('pattern-lock'));
 
-    expect(await screen.findByTestId('miniapp-transfer-error')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByTestId('pattern-lock-hint').textContent?.length).toBeGreaterThan(0);
+    });
+    expect(screen.getByTestId('pattern-lock-footer').textContent).toContain('Request timeout');
     await waitFor(() => {
       expect(screen.queryByTestId('miniapp-transfer-broadcasting-status')).not.toBeInTheDocument();
     });

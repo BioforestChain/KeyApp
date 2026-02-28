@@ -3,6 +3,7 @@ import { ChainErrorCodes, ChainServiceError } from '@/services/chain-adapter/typ
 import {
   createMiniappUnsupportedPipelineError,
   mapMiniappTransferErrorToMessage,
+  resolveMiniappTransferErrorFeedback,
 } from '../miniapp-transfer-error';
 
 function createTestT() {
@@ -81,5 +82,26 @@ describe('miniapp-transfer-error mapper', () => {
   it('falls back to original error message for unknown error', () => {
     const error = new Error('some-random-error');
     expect(mapMiniappTransferErrorToMessage(t, error, chainId)).toBe('some-random-error');
+  });
+
+  it('extracts technical detail from broadcast timeout cause', () => {
+    const error = new ChainServiceError(
+      ChainErrorCodes.TX_BROADCAST_FAILED,
+      'Failed to broadcast transaction',
+      undefined,
+      new Error('Request timeout'),
+    );
+    expect(resolveMiniappTransferErrorFeedback(t, error, chainId)).toEqual({
+      message: 'transaction:broadcast.timeout',
+      detail: 'Request timeout',
+    });
+  });
+
+  it('falls back to raw message when no parsed detail exists', () => {
+    const error = new Error('opaque-upstream-error');
+    expect(resolveMiniappTransferErrorFeedback(t, error, chainId)).toEqual({
+      message: 'opaque-upstream-error',
+      detail: 'opaque-upstream-error',
+    });
   });
 });
