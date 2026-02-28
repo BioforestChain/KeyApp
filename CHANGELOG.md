@@ -1,5 +1,11 @@
 # 更新日志
 
+## [1.0.14] - 2026-02-28
+
+fix: enforce genesisBlock magic source in bioforest api
+
+<!-- last-commit: 8d8d6b4ac3406f2b25eaa5a8a50f71385679e9ad -->
+
 ## [1.0.13] - 2026-02-28
 
 fix CI fallback gating and stabilize miniapp test setup in CI
