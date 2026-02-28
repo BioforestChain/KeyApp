@@ -132,7 +132,7 @@ jobs:
           fi
 
   checks-standard:
-    if: needs.ci-standard.result == 'success'
+    if: always() && needs.ci-standard.result == 'success'
     needs: ci-standard
     runs-on: ubuntu-latest
     steps:
