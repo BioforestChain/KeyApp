@@ -8,6 +8,7 @@ import { existsSync, readFileSync, readdirSync } from 'fs'
 
 const E2E_SCREENSHOTS_DIR = resolve(__dirname, '../../e2e/__screenshots__/Desktop-Chrome/miniapp-ui.mock.spec.ts')
 const MANIFEST_PATH = resolve(__dirname, 'manifest.json')
+const ENABLE_HTTPS_DEV = !process.env.CI
 
 function getShortId(): string {
   const manifest = JSON.parse(readFileSync(MANIFEST_PATH, 'utf-8'))
@@ -51,7 +52,7 @@ function miniappPlugin(): Plugin {
 
 export default defineConfig({
   plugins: [
-    mkcert(),
+    ...(ENABLE_HTTPS_DEV ? [mkcert()] : []),
     react(),
     tsconfigPaths(),
     tailwindcss(),
@@ -63,7 +64,7 @@ export default defineConfig({
     emptyOutDir: true,
   },
   server: {
-    https: true,
+    https: ENABLE_HTTPS_DEV,
     port: 5185,
     fs: {
       allow: [resolve(__dirname, '../..')],
