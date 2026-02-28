@@ -103,7 +103,6 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Cache Playwright browsers
-        if: steps.changes.outputs.code == 'true'
         id: playwright-cache
         uses: actions/cache@v4
         with:
@@ -111,12 +110,11 @@ jobs:
           key: playwright-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
 
       - name: Install Playwright deps
-        if: steps.changes.outputs.code == 'true' && steps.playwright-cache.outputs.cache-hit != 'true'
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
         run: pnpm exec playwright install --with-deps chromium webkit
 
       - name: Ensure Playwright browsers
-        if: steps.changes.outputs.code == 'true'
-        run: pnpm exec playwright install chromium webkit
+        run: pnpm exec playwright install chromium webkit chromium-headless-shell
 
       - name: Run all checks
         env:
