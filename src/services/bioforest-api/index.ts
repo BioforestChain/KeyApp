@@ -20,7 +20,8 @@
  * const block = await client.getLastBlock()
  *
  * // Get balance
- * const balance = await client.getBalance('bXXX...', 'BFM')
+ * const magic = '...from genesisBlock.magic'
+ * const balance = await client.getBalance('bXXX...', 'BFM', magic)
  *
  * // Check pay password status
  * const hasTwoStepSecret = await client.hasTwoStepSecret('bXXX...')
