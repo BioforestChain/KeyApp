@@ -72,7 +72,8 @@ jobs:
 
   # ==================== GitHub-hosted 标准链路 ====================
   ci-standard:
-    if: vars.USE_SELF_HOSTED != 'true'
+    if: always() && (vars.USE_SELF_HOSTED != 'true' || needs.ci-fast.result != 'success')
+    needs: [ci-fast]
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -131,7 +132,7 @@ jobs:
           fi
 
   checks-standard:
-    if: vars.USE_SELF_HOSTED != 'true'
+    if: needs.ci-standard.result == 'success'
     needs: ci-standard
     runs-on: ubuntu-latest
     steps:
