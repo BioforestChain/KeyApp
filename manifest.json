@@ -18,8 +18,8 @@
   "author": [
     "@bfmeta.info"
   ],
-  "version": "1.0.12",
-  "change_log": "fix: recover correct BSC sender for biobridge recharge signing",
+  "version": "1.0.13",
+  "change_log": "fix CI fallback gating and stabilize miniapp test setup in CI",
   "categories": [
     "application",
     "wallet"

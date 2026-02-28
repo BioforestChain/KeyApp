@@ -1,5 +1,11 @@
 # 更新日志
 
+## [1.0.13] - 2026-02-28
+
+fix CI fallback gating and stabilize miniapp test setup in CI
+
+<!-- last-commit: 92eb85244abc099c81b77bbbe45add7896787896 -->
+
 ## [1.0.12] - 2026-02-27
 
 fix: recover correct BSC sender for biobridge recharge signing
