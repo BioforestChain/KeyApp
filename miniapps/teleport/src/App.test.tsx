@@ -247,7 +247,7 @@ describe('Teleport App', () => {
             assetType: 'BFM',
             recipientAddress: 'bReceiver',
             targetChain: 'BFMETAV2',
-            targetAsset: 'BDT',
+            targetAsset: 'BFM',
             ratio: { numerator: 1, denominator: 250 },
             transmitDate: {
               startDate: '2020-01-01',
