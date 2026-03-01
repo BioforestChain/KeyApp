@@ -265,6 +265,16 @@ const formatRatioRate = (
   if (!ratio) return '0';
   const numerator = Number(ratio.numerator);
   const denominator = Number(ratio.denominator);
+  if (!Number.isFinite(numerator) || !Number.isFinite(denominator) || numerator === 0) return '0';
+  return (denominator / numerator).toFixed(8).replace(/\.?0+$/, '');
+};
+
+const formatInverseRatioRate = (
+  ratio: { numerator: number | string; denominator: number | string } | null | undefined,
+): string => {
+  if (!ratio) return '0';
+  const numerator = Number(ratio.numerator);
+  const denominator = Number(ratio.denominator);
   if (!Number.isFinite(numerator) || !Number.isFinite(denominator) || denominator === 0) return '0';
   return (numerator / denominator).toFixed(8).replace(/\.?0+$/, '');
 };
@@ -602,7 +612,7 @@ export default function App() {
     if (!selectedAsset || !amount) return '0';
     const amountNum = Number(amount);
     if (!Number.isFinite(amountNum)) return '0';
-    const ratioNum = Number(selectedAsset.ratio.numerator) / Number(selectedAsset.ratio.denominator);
+    const ratioNum = Number(selectedAsset.ratio.denominator) / Number(selectedAsset.ratio.numerator);
     if (!Number.isFinite(ratioNum)) return '0';
     return (amountNum * ratioNum).toFixed(8).replace(/\.?0+$/, '');
   }, [selectedAsset, amount]);
@@ -746,6 +756,7 @@ export default function App() {
                   ) : (
                     sortedAvailableAssets.map((asset, i) => {
                       const rate = formatRatioRate(asset.ratio);
+                      const inverseRate = formatInverseRatioRate(asset.ratio);
                       const routeLabel = `${asset.chain}/${asset.symbol} ${t('common.arrow')} ${asset.targetChain}/${asset.targetAsset}`;
                       return (
                         <motion.div
@@ -770,8 +781,17 @@ export default function App() {
                                 <AssetAvatar symbol={asset.symbol} chain={asset.chain} />
                                 <div className="min-w-0 flex-1">
                                   <CardTitle className="text-base break-words">{routeLabel}</CardTitle>
-                                  <CardDescription>
-                                    {t('asset.ratio', { from: asset.symbol, rate, to: asset.targetAsset })}
+                                  <CardDescription className="space-y-0.5">
+                                    <div>
+                                      {t('asset.ratio', { from: asset.symbol, rate, to: asset.targetAsset })}
+                                    </div>
+                                    <div className="text-muted-foreground/70">
+                                      {t('asset.ratio', {
+                                        from: asset.targetAsset,
+                                        rate: inverseRate,
+                                        to: asset.symbol,
+                                      })}
+                                    </div>
                                   </CardDescription>
                                 </div>
                               </div>
@@ -996,12 +1016,20 @@ export default function App() {
                     <Separator />
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">{t('confirm.ratio')}</span>
-                      <span>
+                      <span className="text-right">
                         {t('asset.ratio', {
                           from: selectedAsset?.symbol ?? '',
                           rate: formatRatioRate(selectedAsset?.ratio),
                           to: selectedAsset?.targetAsset ?? '',
                         })}
+                        <br />
+                        <span className="text-muted-foreground/70">
+                          {t('asset.ratio', {
+                            from: selectedAsset?.targetAsset ?? '',
+                            rate: formatInverseRatioRate(selectedAsset?.ratio),
+                            to: selectedAsset?.symbol ?? '',
+                          })}
+                        </span>
                       </span>
                     </div>
                     <Separator />
