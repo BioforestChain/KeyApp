@@ -1,5 +1,11 @@
 # 更新日志
 
+## [1.0.16] - 2026-03-01
+
+fix teleport ratio semantics display
+
+<!-- last-commit: 1c2d873aa1b34fdd4efb32218fcb9007169858b9 -->
+
 ## [1.0.15] - 2026-02-28
 
 fix miniapp alias balance handling
