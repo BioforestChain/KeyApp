@@ -18,8 +18,8 @@
   "author": [
     "@bfmeta.info"
   ],
-  "version": "1.0.17",
-  "change_log": "fix teleport ratio direction and release workflow",
+  "version": "1.0.18",
+  "change_log": "fix teleport ratio direction",
   "categories": [
     "application",
     "wallet"
