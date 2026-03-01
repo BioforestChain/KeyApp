@@ -409,6 +409,74 @@ describe('Teleport App', () => {
     })
   })
 
+  it('should display ratio semantics clearly on confirm step', async () => {
+    const mockedGetTransmitAssetTypeList = vi.mocked(getTransmitAssetTypeList)
+    mockedGetTransmitAssetTypeList.mockResolvedValueOnce({
+      transmitSupport: {
+        BFCHAINV2: {
+          BFT: {
+            enable: true,
+            isAirdrop: false,
+            assetType: 'BFT',
+            recipientAddress: 'bReceiver',
+            targetChain: 'BFMCHAIN',
+            targetAsset: 'BFM',
+            ratio: { numerator: 416, denominator: 10000 },
+            transmitDate: {
+              startDate: '2020-01-01',
+              endDate: '2030-12-31',
+            },
+          },
+        },
+      },
+    })
+
+    mockBio.request.mockImplementation(({ method, params }: { method: string; params?: Array<{ chain?: string }> }) => {
+      if (method === 'bio_selectAccount') {
+        return Promise.resolve({ address: 'bSource', chain: params?.[0]?.chain ?? 'BFCHAINV2', name: 'Source' })
+      }
+      if (method === 'bio_getBalance') {
+        return Promise.resolve('100000000000000')
+      }
+      if (method === 'bio_pickWallet') {
+        return Promise.resolve({ address: 'bTarget', chain: 'bfmeta', name: 'Target' })
+      }
+      if (method === 'bio_closeSplashScreen') {
+        return Promise.resolve(null)
+      }
+      return Promise.resolve(null)
+    })
+
+    render(<App />, { wrapper: createWrapper() })
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: '启动 BFCHAINV2 传送门' })).toBeInTheDocument()
+    })
+
+    fireEvent.click(screen.getByRole('button', { name: '启动 BFCHAINV2 传送门' }))
+
+    await waitFor(() => {
+      expect(screen.getByTestId('asset-card-BFT')).toBeInTheDocument()
+    })
+
+    fireEvent.click(screen.getByTestId('asset-card-BFT'))
+    await waitFor(() => {
+      expect(screen.getByTestId('amount-input')).toBeInTheDocument()
+    })
+    fireEvent.change(screen.getByTestId('amount-input'), { target: { value: '10000' } })
+    fireEvent.click(screen.getByTestId('next-button'))
+
+    await waitFor(() => {
+      expect(screen.getByTestId('target-button')).toBeInTheDocument()
+    })
+    fireEvent.click(screen.getByTestId('target-button'))
+
+    await waitFor(() => {
+      expect(screen.getByText('1 BFT = 0.0416 BFM')).toBeInTheDocument()
+      expect(screen.getByText(/416 BFM/)).toBeInTheDocument()
+    })
+  })
+
   it('should show sender/receiver addresses on confirm step and remove free-fee badge', async () => {
     mockBio.request.mockImplementation(({ method, params }: { method: string; params?: Array<{ chain?: string }> }) => {
       if (method === 'bio_selectAccount') {
