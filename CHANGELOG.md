@@ -1,5 +1,11 @@
 # 更新日志
 
+## [1.0.18] - 2026-03-01
+
+fix teleport ratio direction
+
+<!-- last-commit: ec85b6ef9ebaffb53ba0184043461190196a889b -->
+
 ## [1.0.17] - 2026-03-01
 
 fix teleport ratio direction and release workflow
