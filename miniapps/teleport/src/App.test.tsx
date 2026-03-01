@@ -472,8 +472,12 @@ describe('Teleport App', () => {
     fireEvent.click(screen.getByTestId('target-button'))
 
     await waitFor(() => {
-      expect(screen.getByText('1 BFT = 0.0416 BFM')).toBeInTheDocument()
-      expect(screen.getByText(/416 BFM/)).toBeInTheDocument()
+      expect(screen.getByText('1 BFT = 24.03846154 BFM')).toBeInTheDocument()
+      expect(screen.getByText('1 BFM = 0.0416 BFT')).toBeInTheDocument()
+      expect(
+        screen.getAllByText((_, node) => node?.textContent?.includes('240384.61538462 BFM') ?? false)
+          .length,
+      ).toBeGreaterThan(0)
     })
   })
 
