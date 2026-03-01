@@ -265,8 +265,8 @@ const formatRatioRate = (
   if (!ratio) return '0';
   const numerator = Number(ratio.numerator);
   const denominator = Number(ratio.denominator);
-  if (!Number.isFinite(numerator) || !Number.isFinite(denominator) || numerator === 0) return '0';
-  return (denominator / numerator).toFixed(8).replace(/\.?0+$/, '');
+  if (!Number.isFinite(numerator) || !Number.isFinite(denominator) || denominator === 0) return '0';
+  return (numerator / denominator).toFixed(8).replace(/\.?0+$/, '');
 };
 
 const formatInverseRatioRate = (
@@ -275,8 +275,8 @@ const formatInverseRatioRate = (
   if (!ratio) return '0';
   const numerator = Number(ratio.numerator);
   const denominator = Number(ratio.denominator);
-  if (!Number.isFinite(numerator) || !Number.isFinite(denominator) || denominator === 0) return '0';
-  return (numerator / denominator).toFixed(8).replace(/\.?0+$/, '');
+  if (!Number.isFinite(numerator) || !Number.isFinite(denominator) || numerator === 0) return '0';
+  return (denominator / numerator).toFixed(8).replace(/\.?0+$/, '');
 };
 
 export default function App() {
@@ -612,7 +612,7 @@ export default function App() {
     if (!selectedAsset || !amount) return '0';
     const amountNum = Number(amount);
     if (!Number.isFinite(amountNum)) return '0';
-    const ratioNum = Number(selectedAsset.ratio.denominator) / Number(selectedAsset.ratio.numerator);
+    const ratioNum = Number(selectedAsset.ratio.numerator) / Number(selectedAsset.ratio.denominator);
     if (!Number.isFinite(ratioNum)) return '0';
     return (amountNum * ratioNum).toFixed(8).replace(/\.?0+$/, '');
   }, [selectedAsset, amount]);
