@@ -18,8 +18,8 @@
   "author": [
     "@bfmeta.info"
   ],
-  "version": "1.0.18",
-  "change_log": "fix teleport ratio direction",
+  "version": "1.0.19",
+  "change_log": "修复传送门比例语义回退，与后端配置一致",
   "categories": [
     "application",
     "wallet"
