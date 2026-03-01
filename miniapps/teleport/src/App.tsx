@@ -259,6 +259,16 @@ const formatRawBalance = (raw: string, decimals: number): string => {
   return fractionPart.length > 0 ? `${integerWithComma}.${fractionPart}` : integerWithComma;
 };
 
+const formatRatioRate = (
+  ratio: { numerator: number | string; denominator: number | string } | null | undefined,
+): string => {
+  if (!ratio) return '0';
+  const numerator = Number(ratio.numerator);
+  const denominator = Number(ratio.denominator);
+  if (!Number.isFinite(numerator) || !Number.isFinite(denominator) || denominator === 0) return '0';
+  return (numerator / denominator).toFixed(8).replace(/\.?0+$/, '');
+};
+
 export default function App() {
   const { t } = useTranslation();
   const [step, setStep] = useState<Step>('connect');
@@ -590,9 +600,10 @@ export default function App() {
   // 计算预期接收金额
   const expectedReceive = useMemo(() => {
     if (!selectedAsset || !amount) return '0';
-    const { numerator, denominator } = selectedAsset.ratio;
-    const amountNum = parseFloat(amount);
-    const ratioNum = Number(numerator) / Number(denominator);
+    const amountNum = Number(amount);
+    if (!Number.isFinite(amountNum)) return '0';
+    const ratioNum = Number(selectedAsset.ratio.numerator) / Number(selectedAsset.ratio.denominator);
+    if (!Number.isFinite(ratioNum)) return '0';
     return (amountNum * ratioNum).toFixed(8).replace(/\.?0+$/, '');
   }, [selectedAsset, amount]);
 
@@ -734,9 +745,7 @@ export default function App() {
                     </Card>
                   ) : (
                     sortedAvailableAssets.map((asset, i) => {
-                      const rate = (Number(asset.ratio.numerator) / Number(asset.ratio.denominator))
-                        .toFixed(4)
-                        .replace(/\.?0+$/, '');
+                      const rate = formatRatioRate(asset.ratio);
                       const routeLabel = `${asset.chain}/${asset.symbol} ${t('common.arrow')} ${asset.targetChain}/${asset.targetAsset}`;
                       return (
                         <motion.div
@@ -987,7 +996,13 @@ export default function App() {
                     <Separator />
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">{t('confirm.ratio')}</span>
-                      <span>{`${selectedAsset?.ratio.numerator}:${selectedAsset?.ratio.denominator}`}</span>
+                      <span>
+                        {t('asset.ratio', {
+                          from: selectedAsset?.symbol ?? '',
+                          rate: formatRatioRate(selectedAsset?.ratio),
+                          to: selectedAsset?.targetAsset ?? '',
+                        })}
+                      </span>
                     </div>
                     <Separator />
                     <div className="flex justify-between">
