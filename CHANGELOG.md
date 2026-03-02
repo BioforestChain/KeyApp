@@ -1,5 +1,11 @@
 # 更新日志
 
+## [1.0.20] - 2026-03-01
+
+fix miniapp 二次密码签名流程并补全 signSignature required 识别
+
+<!-- last-commit: pending -->
+
 ## [1.0.19] - 2026-03-01
 
 修复传送门比例语义回退，与后端配置一致

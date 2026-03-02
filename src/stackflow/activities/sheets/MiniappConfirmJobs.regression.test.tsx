@@ -65,9 +65,7 @@ vi.mock('@/components/wallet/address-display', () => ({
 }));
 
 vi.mock('@/components/common/amount-display', () => ({
-  AmountDisplay: ({ value, symbol }: { value: string; symbol: string }) => (
-    <span>{`${value}-${symbol}`}</span>
-  ),
+  AmountDisplay: ({ value, symbol }: { value: string; symbol: string }) => <span>{`${value}-${symbol}`}</span>,
 }));
 
 vi.mock('@/components/wallet/chain-icon', () => ({
@@ -89,11 +87,7 @@ vi.mock('@/components/security/pattern-lock', () => ({
     footerText?: string;
   }) => (
     <div>
-      <button
-        type="button"
-        data-testid="pattern-lock"
-        onClick={() => onComplete?.([1, 2, 3, 4])}
-      >
+      <button type="button" data-testid="pattern-lock" onClick={() => onComplete?.([1, 2, 3, 4])}>
         pattern
       </button>
       <span data-testid="pattern-lock-hint">{hintText ?? ''}</span>
@@ -135,7 +129,8 @@ vi.mock('@/components/security/password-input', () => ({
 
 vi.mock('./miniapp-auth', () => ({
   isMiniappWalletLockError: (error: unknown) => error instanceof Error && error.message.includes('wallet lock'),
-  isMiniappTwoStepSecretError: (error: unknown) => error instanceof Error && error.message.includes('pay password'),
+  isMiniappTwoStepSecretError: (error: unknown) =>
+    error instanceof Error && /(pay password|sign\s*signature(?:\s+is)?\s+required|001-11003)/i.test(error.message),
   resolveMiniappTwoStepSecretRequired: vi.fn(async () => false),
 }));
 
@@ -144,6 +139,7 @@ import { MiniappSignTransactionJob } from './MiniappSignTransactionJob';
 import { signUnsignedTransaction } from '@/services/ecosystem/handlers';
 import { getChainProvider } from '@/services/chain-adapter/providers';
 import { superjson } from '@biochain/chain-effect';
+import { resolveMiniappTwoStepSecretRequired } from './miniapp-auth';
 
 describe('miniapp confirm jobs regressions', () => {
   beforeEach(() => {
@@ -152,22 +148,26 @@ describe('miniapp confirm jobs regressions', () => {
     hoisted.currentParams = {};
 
     vi.mocked(getChainProvider).mockReset();
-    vi.mocked(getChainProvider).mockImplementation(() => ({
-      supportsFullTransaction: true,
-      buildTransaction: vi.fn(async (intent: unknown) => ({
-        chainId: 'bfmetav2',
-        intentType: 'transfer',
-        data: intent,
-      })),
-      signTransaction: vi.fn(),
-      broadcastTransaction: vi.fn(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 50));
-        return 'tx-hash';
-      }),
-    } as unknown as ReturnType<typeof getChainProvider>));
+    vi.mocked(getChainProvider).mockImplementation(
+      () =>
+        ({
+          supportsFullTransaction: true,
+          buildTransaction: vi.fn(async (intent: unknown) => ({
+            chainId: 'bfmetav2',
+            intentType: 'transfer',
+            data: intent,
+          })),
+          signTransaction: vi.fn(),
+          broadcastTransaction: vi.fn(async () => {
+            await new Promise((resolve) => setTimeout(resolve, 50));
+            return 'tx-hash';
+          }),
+        }) as unknown as ReturnType<typeof getChainProvider>,
+    );
 
     vi.mocked(signUnsignedTransaction).mockReset();
     vi.mocked(signUnsignedTransaction).mockResolvedValue({ chainId: 'bfmetav2', data: { tx: '1' }, signature: 'sig' });
+    vi.mocked(resolveMiniappTwoStepSecretRequired).mockResolvedValue(false);
 
     walletStore.setState(() => ({
       wallets: [
@@ -270,6 +270,48 @@ describe('miniapp confirm jobs regressions', () => {
       expect(screen.getByTestId('pattern-lock-hint').textContent?.length).toBeGreaterThan(0);
     });
     expect(screen.getByTestId('pattern-lock-footer').textContent).toContain('sign service timeout');
+  });
+
+  it('requires two-step secret before miniapp signing when account has second public key', async () => {
+    vi.mocked(resolveMiniappTwoStepSecretRequired).mockResolvedValueOnce(true);
+
+    render(
+      <MiniappSignTransactionJob
+        params={{
+          appName: 'Org App',
+          appIcon: '',
+          from: 'b_sender_1',
+          chain: 'BFMetaV2',
+          unsignedTx: superjson.stringify({
+            chainId: 'bfmetav2',
+            intentType: 'transfer',
+            data: { tx: 'unsigned' },
+          }),
+        }}
+      />,
+    );
+
+    const signButton = screen.getByTestId('miniapp-sign-review-confirm');
+    await waitFor(() => {
+      expect(signButton).not.toBeDisabled();
+    });
+
+    fireEvent.click(signButton);
+    fireEvent.click(screen.getByTestId('pattern-lock'));
+
+    expect(await screen.findByTestId('password-input')).toBeInTheDocument();
+    expect(vi.mocked(signUnsignedTransaction)).not.toHaveBeenCalled();
+
+    fireEvent.change(screen.getByTestId('password-input'), { target: { value: '123456' } });
+    fireEvent.click(screen.getByTestId('miniapp-sign-two-step-secret-confirm'));
+
+    await waitFor(() => {
+      expect(vi.mocked(signUnsignedTransaction)).toHaveBeenCalledWith(
+        expect.objectContaining({
+          paySecret: '123456',
+        }),
+      );
+    });
   });
 
   it('does not pass raw amount directly to display layer', () => {
@@ -392,6 +434,46 @@ describe('miniapp confirm jobs regressions', () => {
     expect(intent.amount.toRawString()).toBe('1000000000');
   });
 
+  it('requires two-step secret before miniapp transfer signing when account has second public key', async () => {
+    vi.mocked(resolveMiniappTwoStepSecretRequired).mockResolvedValueOnce(true);
+
+    render(
+      <MiniappTransferConfirmJob
+        params={{
+          appName: 'Org App',
+          appIcon: '',
+          from: 'b_sender_1',
+          to: 'b_receiver_1',
+          amount: '1000',
+          chain: 'BFMetaV2',
+          asset: 'BFM',
+        }}
+      />,
+    );
+
+    const confirmButton = screen.getByTestId('miniapp-transfer-review-confirm');
+    await waitFor(() => {
+      expect(confirmButton).not.toBeDisabled();
+    });
+
+    fireEvent.click(confirmButton);
+    fireEvent.click(screen.getByTestId('pattern-lock'));
+
+    expect(await screen.findByTestId('password-input')).toBeInTheDocument();
+    expect(vi.mocked(signUnsignedTransaction)).not.toHaveBeenCalled();
+
+    fireEvent.change(screen.getByTestId('password-input'), { target: { value: '654321' } });
+    fireEvent.click(screen.getByTestId('miniapp-transfer-two-step-secret-confirm'));
+
+    await waitFor(() => {
+      expect(vi.mocked(signUnsignedTransaction)).toHaveBeenCalledWith(
+        expect.objectContaining({
+          paySecret: '654321',
+        }),
+      );
+    });
+  });
+
   it('passes remark into transaction intent and keeps it in emitted transaction', async () => {
     const buildTransaction = vi.fn(async (intent: unknown) => ({
       chainId: 'bfmetav2',
@@ -412,18 +494,20 @@ describe('miniapp confirm jobs regressions', () => {
       signature: 'sig',
     }));
 
-    const eventPromise = new Promise<CustomEvent<{ confirmed?: boolean; transaction?: Record<string, unknown> }>>((resolve) => {
-      const handleEvent = (event: Event) => {
-        const customEvent = event as CustomEvent<{ confirmed?: boolean; transaction?: Record<string, unknown> }>;
-        if (customEvent.detail?.confirmed !== true) {
-          return;
-        }
-        window.removeEventListener('miniapp-transfer-confirm', handleEvent);
-        resolve(customEvent);
-      };
+    const eventPromise = new Promise<CustomEvent<{ confirmed?: boolean; transaction?: Record<string, unknown> }>>(
+      (resolve) => {
+        const handleEvent = (event: Event) => {
+          const customEvent = event as CustomEvent<{ confirmed?: boolean; transaction?: Record<string, unknown> }>;
+          if (customEvent.detail?.confirmed !== true) {
+            return;
+          }
+          window.removeEventListener('miniapp-transfer-confirm', handleEvent);
+          resolve(customEvent);
+        };
 
-      window.addEventListener('miniapp-transfer-confirm', handleEvent);
-    });
+        window.addEventListener('miniapp-transfer-confirm', handleEvent);
+      },
+    );
 
     render(
       <MiniappTransferConfirmJob
@@ -564,7 +648,6 @@ describe('miniapp confirm jobs regressions', () => {
     expect(buildTransaction).not.toHaveBeenCalled();
     expect(broadcastTransaction).not.toHaveBeenCalled();
   });
-
 
   it('ignores duplicated unlock submission while transfer is in-flight', async () => {
     vi.mocked(signUnsignedTransaction).mockImplementation(async () => {
@@ -751,24 +834,27 @@ describe('miniapp confirm jobs regressions', () => {
   });
 
   it('uses toast and exits broadcasting state when background broadcast fails', async () => {
-    vi.mocked(getChainProvider).mockImplementation(() => ({
-      supportsFullTransaction: true,
-      buildTransaction: vi.fn(async (intent: unknown) => ({
-        chainId: 'bfmetav2',
-        intentType: 'transfer',
-        data: intent,
-      })),
-      signTransaction: vi.fn(),
-      broadcastTransaction: vi.fn(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 50));
-        throw new ChainServiceError(
-          ChainErrorCodes.TX_BROADCAST_FAILED,
-          'Failed to broadcast transaction',
-          undefined,
-          new Error('Request timeout'),
-        );
-      }),
-    } as unknown as ReturnType<typeof getChainProvider>));
+    vi.mocked(getChainProvider).mockImplementation(
+      () =>
+        ({
+          supportsFullTransaction: true,
+          buildTransaction: vi.fn(async (intent: unknown) => ({
+            chainId: 'bfmetav2',
+            intentType: 'transfer',
+            data: intent,
+          })),
+          signTransaction: vi.fn(),
+          broadcastTransaction: vi.fn(async () => {
+            await new Promise((resolve) => setTimeout(resolve, 50));
+            throw new ChainServiceError(
+              ChainErrorCodes.TX_BROADCAST_FAILED,
+              'Failed to broadcast transaction',
+              undefined,
+              new Error('Request timeout'),
+            );
+          }),
+        }) as unknown as ReturnType<typeof getChainProvider>,
+    );
 
     vi.mocked(signUnsignedTransaction).mockResolvedValue({ chainId: 'bfmetav2', data: { tx: '1' }, signature: 'sig' });
 
@@ -819,22 +905,23 @@ describe('miniapp confirm jobs regressions', () => {
     expect(screen.queryByTestId('miniapp-transfer-error')).not.toBeInTheDocument();
   });
 
-
   it('emits transfer result with the same requestId', async () => {
     const requestId = 'transfer-test-request-id';
 
-    const eventPromise = new Promise<CustomEvent<{ requestId?: string; confirmed?: boolean; txHash?: string }>>((resolve) => {
-      const handleEvent = (event: Event) => {
-        const customEvent = event as CustomEvent<{ requestId?: string; confirmed?: boolean; txHash?: string }>;
-        if (customEvent.detail?.requestId !== requestId) {
-          return;
-        }
-        window.removeEventListener('miniapp-transfer-confirm', handleEvent);
-        resolve(customEvent);
-      };
+    const eventPromise = new Promise<CustomEvent<{ requestId?: string; confirmed?: boolean; txHash?: string }>>(
+      (resolve) => {
+        const handleEvent = (event: Event) => {
+          const customEvent = event as CustomEvent<{ requestId?: string; confirmed?: boolean; txHash?: string }>;
+          if (customEvent.detail?.requestId !== requestId) {
+            return;
+          }
+          window.removeEventListener('miniapp-transfer-confirm', handleEvent);
+          resolve(customEvent);
+        };
 
-      window.addEventListener('miniapp-transfer-confirm', handleEvent);
-    });
+        window.addEventListener('miniapp-transfer-confirm', handleEvent);
+      },
+    );
 
     render(
       <MiniappTransferConfirmJob
@@ -883,27 +970,32 @@ describe('miniapp confirm jobs regressions', () => {
       };
     });
 
-    vi.mocked(getChainProvider).mockImplementation(() => ({
-      supportsFullTransaction: true,
-      buildTransaction: vi.fn(async (intent: unknown) => ({
-        chainId: 'bfmetav2',
-        intentType: 'transfer',
-        data: intent,
-      })),
-      signTransaction: vi.fn(),
-      broadcastTransaction: vi.fn(async (signedTx: { data: unknown }) => {
-        const payload = signedTx.data as { signature?: string };
-        return 'tx-hash-' + (payload.signature ?? 'unknown');
-      }),
-    } as unknown as ReturnType<typeof getChainProvider>));
+    vi.mocked(getChainProvider).mockImplementation(
+      () =>
+        ({
+          supportsFullTransaction: true,
+          buildTransaction: vi.fn(async (intent: unknown) => ({
+            chainId: 'bfmetav2',
+            intentType: 'transfer',
+            data: intent,
+          })),
+          signTransaction: vi.fn(),
+          broadcastTransaction: vi.fn(async (signedTx: { data: unknown }) => {
+            const payload = signedTx.data as { signature?: string };
+            return 'tx-hash-' + (payload.signature ?? 'unknown');
+          }),
+        }) as unknown as ReturnType<typeof getChainProvider>,
+    );
 
     const runTransfer = async (requestId: string) => {
-      const eventPromise = new Promise<CustomEvent<{
-        requestId?: string;
-        confirmed?: boolean;
-        txHash?: string;
-        transaction?: Record<string, unknown>;
-      }>>((resolve) => {
+      const eventPromise = new Promise<
+        CustomEvent<{
+          requestId?: string;
+          confirmed?: boolean;
+          txHash?: string;
+          transaction?: Record<string, unknown>;
+        }>
+      >((resolve) => {
         const handleEvent = (event: Event) => {
           const customEvent = event as CustomEvent<{
             requestId?: string;

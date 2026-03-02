@@ -124,12 +124,7 @@ function parseAmountLike(value: unknown): Amount | null {
   const decimalsValue = value.decimals;
   const symbolValue = value.symbol;
 
-  const raw =
-    typeof rawValue === 'string'
-      ? rawValue
-      : typeof rawValue === 'number'
-        ? String(rawValue)
-        : null;
+  const raw = typeof rawValue === 'string' ? rawValue : typeof rawValue === 'number' ? String(rawValue) : null;
   const decimals = typeof decimalsValue === 'number' ? decimalsValue : null;
   const symbol = typeof symbolValue === 'string' ? symbolValue : undefined;
 
@@ -152,8 +147,22 @@ function MiniappTransferConfirmJobContent() {
   const { pop } = useFlow();
   const toast = useToast();
   const params = useActivityParams<MiniappTransferConfirmJobParams>();
-  const { requestId, mode, appName, appIcon, from, to, amount, chain, asset, remark, unsignedTx: unsignedTxJson } = params;
-  const fallbackRequestIdRef = useRef(requestId ?? `legacy-transfer-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`);
+  const {
+    requestId,
+    mode,
+    appName,
+    appIcon,
+    from,
+    to,
+    amount,
+    chain,
+    asset,
+    remark,
+    unsignedTx: unsignedTxJson,
+  } = params;
+  const fallbackRequestIdRef = useRef(
+    requestId ?? `legacy-transfer-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+  );
   const effectiveRequestId = fallbackRequestIdRef.current;
   const isSignMode = mode === 'sign';
 
@@ -230,7 +239,10 @@ function MiniappTransferConfirmJobContent() {
     return Amount.tryFromFormatted(feeText, feeDecimals, feeSymbol) ?? null;
   }, [feeDecimals, feeInput, feeSymbol, isSignMode]);
 
-  const displayAmount = useMemo(() => parsedAmount?.toFormatted({ trimTrailingZeros: false }) ?? amount, [parsedAmount, amount]);
+  const displayAmount = useMemo(
+    () => parsedAmount?.toFormatted({ trimTrailingZeros: false }) ?? amount,
+    [parsedAmount, amount],
+  );
   const amountInvalidMessage = useMemo(
     () => (parsedAmount ? null : t('transaction:broadcast.invalidParams')),
     [parsedAmount, t],
@@ -427,59 +439,64 @@ function MiniappTransferConfirmJobContent() {
     };
   }, [resolvedChainId, from]);
 
+  const emitTransferResult = useCallback(
+    (detail: MiniappTransferResultDetail) => {
+      if (didDispatchResultRef.current) {
+        return;
+      }
 
-  const emitTransferResult = useCallback((detail: MiniappTransferResultDetail) => {
-    if (didDispatchResultRef.current) {
-      return;
-    }
+      didDispatchResultRef.current = true;
+      if (typeof window === 'undefined') {
+        return;
+      }
 
-    didDispatchResultRef.current = true;
-    if (typeof window === 'undefined') {
-      return;
-    }
+      const payload: MiniappTransferResultDetail = {
+        requestId: effectiveRequestId,
+        ...detail,
+      };
 
-    const payload: MiniappTransferResultDetail = {
-      requestId: effectiveRequestId,
-      ...detail,
-    };
+      logTransferSheet('sheet.emit', {
+        confirmed: payload.confirmed,
+        hasTxHash: Boolean(payload.txHash),
+        hasTransaction: Boolean(payload.transaction),
+        hasSignedTx: Boolean(payload.signedTx),
+        txId: payload.txId,
+      });
 
-    logTransferSheet('sheet.emit', {
-      confirmed: payload.confirmed,
-      hasTxHash: Boolean(payload.txHash),
-      hasTransaction: Boolean(payload.transaction),
-      hasSignedTx: Boolean(payload.signedTx),
-      txId: payload.txId,
-    });
+      window.dispatchEvent(
+        new CustomEvent('miniapp-transfer-confirm', {
+          detail: payload,
+        }),
+      );
+    },
+    [effectiveRequestId, logTransferSheet],
+  );
 
-    window.dispatchEvent(
-      new CustomEvent('miniapp-transfer-confirm', {
-        detail: payload,
-      }),
-    );
-  }, [effectiveRequestId, logTransferSheet]);
+  const emitSheetClosed = useCallback(
+    (reason: MiniappTransferSheetClosedDetail['reason']) => {
+      if (didDispatchCloseRef.current) {
+        return;
+      }
 
-  const emitSheetClosed = useCallback((reason: MiniappTransferSheetClosedDetail['reason']) => {
-    if (didDispatchCloseRef.current) {
-      return;
-    }
+      didDispatchCloseRef.current = true;
+      if (typeof window === 'undefined') {
+        return;
+      }
 
-    didDispatchCloseRef.current = true;
-    if (typeof window === 'undefined') {
-      return;
-    }
+      const payload: MiniappTransferSheetClosedDetail = {
+        requestId: effectiveRequestId,
+        reason,
+      };
 
-    const payload: MiniappTransferSheetClosedDetail = {
-      requestId: effectiveRequestId,
-      reason,
-    };
-
-    logTransferSheet('sheet.closed', payload);
-    window.dispatchEvent(
-      new CustomEvent('miniapp-transfer-sheet-closed', {
-        detail: payload,
-      }),
-    );
-  }, [effectiveRequestId, logTransferSheet]);
+      logTransferSheet('sheet.closed', payload);
+      window.dispatchEvent(
+        new CustomEvent('miniapp-transfer-sheet-closed', {
+          detail: payload,
+        }),
+      );
+    },
+    [effectiveRequestId, logTransferSheet],
+  );
 
   useEffect(() => {
     if (!isSuccess || successCountdown === null) {
@@ -585,9 +602,7 @@ function MiniappTransferConfirmJobContent() {
           ...(paySecret ? { paySecret } : {}),
         });
 
-        const transaction = isRecord(signedTx.data)
-          ? cloneTransactionRecord(signedTx.data)
-          : { data: signedTx.data };
+        const transaction = isRecord(signedTx.data) ? cloneTransactionRecord(signedTx.data) : { data: signedTx.data };
 
         return { signedTx, transaction };
       }
@@ -626,9 +641,9 @@ function MiniappTransferConfirmJobContent() {
 
       const signedTxForBroadcast = isRecord(signedTx.data)
         ? {
-          ...signedTx,
-          data: cloneTransactionRecord(signedTx.data),
-        }
+            ...signedTx,
+            data: cloneTransactionRecord(signedTx.data),
+          }
         : signedTx;
 
       if (isMountedRef.current) {
@@ -648,7 +663,11 @@ function MiniappTransferConfirmJobContent() {
 
   const handleTransferFailure = useCallback(
     (error: unknown, inputStep: TransferInputStep) => {
-      const { message: mappedError, detail: mappedErrorDetail } = resolveMiniappTransferErrorFeedback(t, error, resolvedChainId);
+      const { message: mappedError, detail: mappedErrorDetail } = resolveMiniappTransferErrorFeedback(
+        t,
+        error,
+        resolvedChainId,
+      );
       if (isBackgroundBroadcastRef.current) {
         if (isMountedRef.current) {
           setStep(inputStep);
@@ -793,7 +812,18 @@ function MiniappTransferConfirmJobContent() {
         }
       }
     },
-    [emitSheetClosed, emitTransferResult, handleTransferFailure, isSignMode, logTransferSheet, performTransfer, pop, t, toast, transferShortTitle],
+    [
+      emitSheetClosed,
+      emitTransferResult,
+      handleTransferFailure,
+      isSignMode,
+      logTransferSheet,
+      performTransfer,
+      pop,
+      t,
+      toast,
+      transferShortTitle,
+    ],
   );
 
   const handlePatternComplete = useCallback(
@@ -802,10 +832,21 @@ function MiniappTransferConfirmJobContent() {
         return;
       }
 
+      if (requiresTwoStepSecret) {
+        setPattern(nodes);
+        setPatternError(false);
+        setTwoStepSecret('');
+        setTwoStepSecretError(false);
+        setErrorMessage(null);
+        setErrorDetail(null);
+        setStep('two_step_secret');
+        return;
+      }
+
       const password = patternToString(nodes);
       await runTransfer(password, 'wallet_lock');
     },
-    [isBusy, walletId, runTransfer],
+    [isBusy, walletId, requiresTwoStepSecret, runTransfer],
   );
 
   const handleTwoStepSecretSubmit = useCallback(async () => {
@@ -850,7 +891,17 @@ function MiniappTransferConfirmJobContent() {
     emitTransferResult({ confirmed: false });
     emitSheetClosed('cancel');
     pop();
-  }, [emitSheetClosed, emitTransferResult, handleSuccessClose, isBroadcasting, isBuilding, isSuccess, logTransferSheet, moveToBackgroundBroadcast, pop]);
+  }, [
+    emitSheetClosed,
+    emitTransferResult,
+    handleSuccessClose,
+    isBroadcasting,
+    isBuilding,
+    isSuccess,
+    logTransferSheet,
+    moveToBackgroundBroadcast,
+    pop,
+  ]);
 
   const walletLockServiceMessage = !patternError && errorMessage ? errorMessage : null;
   const walletLockErrorDetail = !patternError ? errorDetail : null;
@@ -931,9 +982,7 @@ function MiniappTransferConfirmJobContent() {
               )}
 
               {amountInvalidMessage && (
-                <div className="bg-destructive/10 text-destructive rounded-xl p-3 text-sm">
-                  {amountInvalidMessage}
-                </div>
+                <div className="bg-destructive/10 text-destructive rounded-xl p-3 text-sm">{amountInvalidMessage}</div>
               )}
 
               <div className="bg-muted/50 flex items-center justify-between rounded-xl p-3">
@@ -968,7 +1017,7 @@ function MiniappTransferConfirmJobContent() {
               {remarkEntries.length > 0 && (
                 <div data-testid="miniapp-transfer-remark" className="bg-muted/50 space-y-2 rounded-xl p-3">
                   <span className="text-muted-foreground text-xs">{t('memo')}</span>
-                  <div className="max-h-36 space-y-1 overflow-y-auto pr-1 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-[color-mix(in_srgb,currentColor,transparent)]">
+                  <div className="scrollbar-thin scrollbar-track-transparent scrollbar-thumb-[color-mix(in_srgb,currentColor,transparent)] max-h-36 space-y-1 overflow-y-auto pr-1">
                     {remarkEntries.map((entry, index) => (
                       <div
                         key={entry.key}
@@ -978,7 +1027,7 @@ function MiniappTransferConfirmJobContent() {
                         )}
                       >
                         <span className="text-muted-foreground min-w-0 break-all">{entry.key}</span>
-                        <span className="min-w-0 break-all text-right">{entry.value}</span>
+                        <span className="min-w-0 text-right break-all">{entry.value}</span>
                       </div>
                     ))}
                   </div>
@@ -1002,7 +1051,13 @@ function MiniappTransferConfirmJobContent() {
               <button
                 data-testid="miniapp-transfer-review-confirm"
                 onClick={handleEnterWalletLockStep}
-                disabled={isBusy || !walletId || isResolvingTwoStepSecret || !parsedAmount || (isSignMode && (isFeeEstimating || !parsedFeeAmount))}
+                disabled={
+                  isBusy ||
+                  !walletId ||
+                  isResolvingTwoStepSecret ||
+                  !parsedAmount ||
+                  (isSignMode && (isFeeEstimating || !parsedFeeAmount))
+                }
                 className={cn(
                   'flex-1 rounded-xl py-3 font-medium transition-colors',
                   'bg-primary text-primary-foreground hover:bg-primary/90',
@@ -1110,6 +1165,7 @@ function MiniappTransferConfirmJobContent() {
               </button>
               <button
                 onClick={handleTwoStepSecretConfirm}
+                data-testid="miniapp-transfer-two-step-secret-confirm"
                 disabled={isBusy || twoStepSecret.trim().length === 0}
                 className={cn(
                   'flex-1 rounded-xl py-3 font-medium transition-colors',
@@ -1158,7 +1214,7 @@ function MiniappTransferConfirmJobContent() {
             {remarkEntries.length > 0 && (
               <div data-testid="miniapp-transfer-remark" className="bg-muted/50 space-y-2 rounded-xl p-3">
                 <span className="text-muted-foreground text-xs">{t('memo')}</span>
-                <div className="max-h-36 space-y-1 overflow-y-auto pr-1 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-[color-mix(in_srgb,currentColor,transparent)]">
+                <div className="scrollbar-thin scrollbar-track-transparent scrollbar-thumb-[color-mix(in_srgb,currentColor,transparent)] max-h-36 space-y-1 overflow-y-auto pr-1">
                   {remarkEntries.map((entry, index) => (
                     <div
                       key={entry.key}
@@ -1168,7 +1224,7 @@ function MiniappTransferConfirmJobContent() {
                       )}
                     >
                       <span className="text-muted-foreground min-w-0 break-all">{entry.key}</span>
-                      <span className="min-w-0 break-all text-right">{entry.value}</span>
+                      <span className="min-w-0 text-right break-all">{entry.value}</span>
                     </div>
                   ))}
                 </div>
