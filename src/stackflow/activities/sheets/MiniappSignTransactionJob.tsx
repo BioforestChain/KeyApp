@@ -205,6 +205,17 @@ function MiniappSignTransactionJobContent() {
         return;
       }
 
+      if (requiresTwoStepSecret) {
+        setPattern(nodes);
+        setPatternError(false);
+        setTwoStepSecret('');
+        setTwoStepSecretError(false);
+        setErrorMessage(null);
+        setErrorDetail(null);
+        setStep('two_step_secret');
+        return;
+      }
+
       const password = patternToString(nodes);
       setIsSubmitting(true);
       setPatternError(false);
@@ -240,7 +251,7 @@ function MiniappSignTransactionJobContent() {
         setIsSubmitting(false);
       }
     },
-    [isSubmitting, unsignedTx, walletId, performSign, t],
+    [isSubmitting, unsignedTx, walletId, requiresTwoStepSecret, performSign, t],
   );
 
   const handleTwoStepSecretSubmit = useCallback(async () => {
@@ -489,6 +500,7 @@ function MiniappSignTransactionJobContent() {
               </button>
               <button
                 onClick={handleTwoStepSecretConfirm}
+                data-testid="miniapp-sign-two-step-secret-confirm"
                 disabled={isSubmitting || twoStepSecret.trim().length === 0}
                 className={cn(
                   'flex-1 rounded-xl py-3 font-medium transition-colors',

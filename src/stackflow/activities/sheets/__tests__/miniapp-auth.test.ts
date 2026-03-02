@@ -21,5 +21,20 @@ describe('miniapp-auth', () => {
   it('detects two-step secret errors from plain error message', () => {
     expect(isMiniappTwoStepSecretError(new Error('security password invalid'))).toBe(true);
   });
-});
 
+  it('detects two-step secret required errors from signSignature validation message', () => {
+    expect(
+      isMiniappTwoStepSecretError(
+        new Error('Transaction signSignature is required, signature xxx senderId yyy type BFM-BFMETA-ASST-02'),
+      ),
+    ).toBe(true);
+  });
+
+  it('detects two-step secret required errors from chain code 001-11003 message', () => {
+    const error = new ChainServiceError(
+      ChainErrorCodes.SIGNATURE_FAILED,
+      '001-11003: Transaction signSignature is required',
+    );
+    expect(isMiniappTwoStepSecretError(error)).toBe(true);
+  });
+});
