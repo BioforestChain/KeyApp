@@ -1,0 +1,98 @@
+{
+  "name": "Bio 官方生态",
+  "version": "1.0.0",
+  "updated": "2026-03-02",
+  "icon": "../logos/logo-256.webp",
+  "apps": [
+    {
+      "id": "xin.dweb.biobridge",
+      "name": "跨链通",
+      "description": "BioBridge - 跨链资产桥接，支持锻造和赎回",
+      "longDescription": "跨链通 (BioBridge) 是 Bio 生态的跨链桥接工具，支持外链资产与内链资产的双向兑换。\n\n## 功能\n- **锻造**: 将 ETH/BSC/TRON 等外链资产转换为 Bio 生态内的 Token\n- **赎回**: 将 Bio 生态内的 Token 转换回外链资产\n\n## 支持的链\n- Ethereum (ETH)\n- BNB Chain (BSC)\n- Tron (TRON)\n- BFMeta / BFChain / PMC",
+      "icon": "./biobridge/icon.svg",
+      "version": "1.0.0",
+      "author": "Bio Team",
+      "website": "https://bridge.dweb.xin",
+      "category": "exchange",
+      "tags": [
+        "跨链桥",
+        "锻造",
+        "赎回",
+        "DeFi",
+        "兑换"
+      ],
+      "permissions": [
+        "bio_requestAccounts",
+        "bio_selectAccount",
+        "bio_createTransaction",
+        "bio_signTransaction",
+        "bio_signMessage"
+      ],
+      "chains": [
+        "ethereum",
+        "bsc",
+        "tron",
+        "bfmeta",
+        "bfchain",
+        "pmchain"
+      ],
+      "officialScore": 80,
+      "communityScore": 90,
+      "screenshots": [],
+      "publishedAt": "2024-12-15",
+      "updatedAt": "2026-01-12",
+      "beta": false,
+      "themeColor": "from-blue-800 via-purple-900 to-indigo-950",
+      "themeColorFrom": "#1e40af",
+      "splashScreen": true,
+      "dirName": "biobridge",
+      "url": "./biobridge/",
+      "runtime": "iframe"
+    },
+    {
+      "id": "xin.dweb.teleport",
+      "name": "一键传送",
+      "description": "跨钱包资产转移，将资产从一个地址安全转移到另一个地址",
+      "longDescription": "一键传送是 Bio 生态的核心工具，支持在多条链之间安全转移资产。\n\n## 功能特点\n- 支持多链资产转移\n- 安全的签名机制\n- 实时交易状态追踪",
+      "icon": "./teleport/icon.svg",
+      "version": "0.1.0",
+      "author": "Bio Team",
+      "website": "https://teleport.dweb.xin",
+      "category": "tools",
+      "tags": [
+        "转账",
+        "跨链",
+        "资产管理"
+      ],
+      "permissions": [
+        "bio_selectAccount",
+        "bio_pickWallet",
+        "bio_getBalance",
+        "bio_createTransaction",
+        "bio_signTransaction"
+      ],
+      "chains": [
+        "bfmeta",
+        "bfchainv2",
+        "biwmeta",
+        "ccchain",
+        "pmchain"
+      ],
+      "officialScore": 90,
+      "communityScore": 80,
+      "screenshots": [
+        "./teleport/screenshots/teleport-01-connect.png",
+        "./teleport/screenshots/teleport-02-connect-dark.png"
+      ],
+      "publishedAt": "2024-12-01",
+      "updatedAt": "2024-12-28",
+      "beta": false,
+      "themeColor": "from-indigo-800 via-purple-900 to-violet-950",
+      "themeColorFrom": "#3730a3",
+      "splashScreen": true,
+      "dirName": "teleport",
+      "url": "./teleport/",
+      "runtime": "iframe"
+    }
+  ]
+}

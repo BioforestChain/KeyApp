@@ -1,0 +1,388 @@
+{
+  "version": "2.0.0",
+  "chains": [
+    {
+      "id": "bfmetav2",
+      "version": "1.0",
+      "chainKind": "bioforest",
+      "name": "BFMeta V2",
+      "symbol": "BFM",
+      "icon": "../icons/bfmeta/chain.svg",
+      "tokenIconBase": [
+        "../icons/bfmeta/tokens/$symbol.svg",
+        "https://bfm-fonts-cdn.oss-cn-hongkong.aliyuncs.com/meta-icon/bfm/icon-$SYMBOL.png",
+        "https://raw.githubusercontent.com/BFChainMeta/fonts-cdn/main/src/meta-icon/bfm/icon-$SYMBOL.png"
+      ],
+      "prefix": "b",
+      "decimals": 8,
+      "apis": [
+        {
+          "type": "biowallet-v1",
+          "endpoint": "https://walletapi.bf-meta.org/wallet/bfmetav2",
+          "config": {
+            "genesisBlock": "./genesis/bfmetav2.json"
+          }
+        }
+      ],
+      "explorer": {
+        "url": "https://tracker.bf-meta.org",
+        "queryTx": "https://tracker.bf-meta.org/#/info/event-details/:signature",
+        "queryAddress": "https://tracker.bf-meta.org/#/info/address-details/:address",
+        "queryBlock": "https://tracker.bf-meta.org/#/info/block-details/:height"
+      }
+    },
+    {
+      "id": "bfmeta",
+      "version": "1.0",
+      "chainKind": "bioforest",
+      "name": "BFMeta",
+      "symbol": "BFM",
+      "icon": "../icons/bfmeta/chain.svg",
+      "tokenIconBase": [
+        "../icons/bfmeta/tokens/$symbol.svg",
+        "https://bfm-fonts-cdn.oss-cn-hongkong.aliyuncs.com/meta-icon/bfm/icon-$SYMBOL.png",
+        "https://raw.githubusercontent.com/BFChainMeta/fonts-cdn/main/src/meta-icon/bfm/icon-$SYMBOL.png"
+      ],
+      "prefix": "b",
+      "decimals": 8,
+      "apis": [
+        {
+          "type": "biowallet-v1",
+          "endpoint": "https://walletapi.bf-meta.org/wallet/bfm",
+          "config": {
+            "genesisBlock": "./genesis/bfmeta.json"
+          }
+        }
+      ],
+      "explorer": {
+        "url": "https://tracker.bfmeta.org",
+        "queryTx": "https://tracker.bfmeta.org/#/info/event-details/:signature",
+        "queryAddress": "https://tracker.bfmeta.org/#/info/address-details/:address",
+        "queryBlock": "https://tracker.bfmeta.org/#/info/block-details/:height"
+      }
+    },
+    {
+      "id": "ccchain",
+      "version": "1.0",
+      "chainKind": "bioforest",
+      "name": "CCChain",
+      "symbol": "CCC",
+      "icon": "../icons/ccchain/chain.svg",
+      "tokenIconBase": [
+        "../icons/ccchain/tokens/$symbol.svg",
+        "https://bfm-fonts-cdn.oss-cn-hongkong.aliyuncs.com/meta-icon/ccc/icon-$SYMBOL.png",
+        "https://raw.githubusercontent.com/BFChainMeta/fonts-cdn/main/src/meta-icon/ccc/icon-$SYMBOL.png"
+      ],
+      "prefix": "b",
+      "decimals": 8,
+      "apis": [
+        {
+          "type": "biowallet-v1",
+          "endpoint": "https://walletapi.bf-meta.org/wallet/ccchain",
+          "config": {
+            "genesisBlock": "./genesis/ccchain.json"
+          }
+        }
+      ]
+    },
+    {
+      "id": "pmchain",
+      "version": "1.0",
+      "chainKind": "bioforest",
+      "name": "PMChain",
+      "symbol": "PMC",
+      "icon": "../icons/pmchain/chain.svg",
+      "tokenIconBase": [
+        "../icons/pmchain/tokens/$symbol.svg",
+        "https://bfm-fonts-cdn.oss-cn-hongkong.aliyuncs.com/meta-icon/pmc/icon-$SYMBOL.png",
+        "https://raw.githubusercontent.com/BFChainMeta/fonts-cdn/main/src/meta-icon/pmc/icon-$SYMBOL.png"
+      ],
+      "prefix": "b",
+      "decimals": 8,
+      "apis": [
+        {
+          "type": "biowallet-v1",
+          "endpoint": "https://walletapi.bf-meta.org/wallet/pmchain",
+          "config": {
+            "genesisBlock": "./genesis/pmchain.json"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bfchainv2",
+      "version": "1.0",
+      "chainKind": "bioforest",
+      "name": "BFChain V2",
+      "symbol": "BFT",
+      "icon": "../icons/bfchainv2/chain.svg",
+      "tokenIconBase": [
+        "../icons/bfchainv2/tokens/$symbol.svg",
+        "https://bfm-fonts-cdn.oss-cn-hongkong.aliyuncs.com/meta-icon/bftv2/icon-$SYMBOL.png",
+        "https://raw.githubusercontent.com/BFChainMeta/fonts-cdn/main/src/meta-icon/bftv2/icon-$SYMBOL.png"
+      ],
+      "prefix": "b",
+      "decimals": 8,
+      "apis": [
+        {
+          "type": "biowallet-v1",
+          "endpoint": "https://walletapi.bf-meta.org/wallet/bfchainv2",
+          "config": {
+            "genesisBlock": "./genesis/bfchainv2.json"
+          }
+        }
+      ]
+    },
+    {
+      "id": "btgmeta",
+      "version": "1.0",
+      "chainKind": "bioforest",
+      "name": "BTGMeta",
+      "symbol": "BTGM",
+      "icon": "../icons/btgmeta/chain.svg",
+      "tokenIconBase": [
+        "../icons/btgmeta/tokens/$symbol.svg",
+        "https://bfm-fonts-cdn.oss-cn-hongkong.aliyuncs.com/meta-icon/btgm/icon-$SYMBOL.png",
+        "https://raw.githubusercontent.com/BFChainMeta/fonts-cdn/main/src/meta-icon/btgm/icon-$SYMBOL.png"
+      ],
+      "prefix": "b",
+      "decimals": 8,
+      "apis": [
+        {
+          "type": "biowallet-v1",
+          "endpoint": "https://walletapi.bf-meta.org/wallet/btgmeta",
+          "config": {
+            "genesisBlock": "./genesis/btgmeta.json"
+          }
+        }
+      ]
+    },
+    {
+      "id": "biwmeta",
+      "version": "1.0",
+      "chainKind": "bioforest",
+      "name": "BIWMeta",
+      "symbol": "BIW",
+      "tokenIconBase": [
+        "https://bfm-fonts-cdn.oss-cn-hongkong.aliyuncs.com/meta-icon/biwm/icon-$SYMBOL.png",
+        "https://raw.githubusercontent.com/BFChainMeta/fonts-cdn/main/src/meta-icon/biwm/icon-$SYMBOL.png"
+      ],
+      "prefix": "b",
+      "decimals": 8,
+      "apis": [
+        {
+          "type": "biowallet-v1",
+          "endpoint": "https://walletapi.bf-meta.org/wallet/biwmeta",
+          "config": {
+            "genesisBlock": "./genesis/biwmeta.json"
+          }
+        }
+      ],
+      "explorer": {
+        "url": "https://tracker.biw-meta.info",
+        "queryTx": "https://tracker.biw-meta.info/#/info/event-details/:signature",
+        "queryAddress": "https://tracker.biw-meta.info/#/info/address-details/:address",
+        "queryBlock": "https://tracker.biw-meta.info/#/info/block-details/:height"
+      }
+    },
+    {
+      "id": "ethmeta",
+      "version": "1.0",
+      "chainKind": "bioforest",
+      "name": "ETHMeta",
+      "symbol": "ETHM",
+      "icon": "../icons/ethmeta/chain.svg",
+      "tokenIconBase": [
+        "../icons/ethmeta/tokens/$symbol.svg",
+        "https://bfm-fonts-cdn.oss-cn-hongkong.aliyuncs.com/meta-icon/ethm/icon-$SYMBOL.png",
+        "https://raw.githubusercontent.com/BFChainMeta/fonts-cdn/main/src/meta-icon/ethm/icon-$SYMBOL.png"
+      ],
+      "prefix": "b",
+      "decimals": 8,
+      "apis": [
+        {
+          "type": "biowallet-v1",
+          "endpoint": "https://walletapi.bf-meta.org/wallet/ethmeta",
+          "config": {
+            "genesisBlock": "./genesis/ethmeta.json"
+          }
+        }
+      ]
+    },
+    {
+      "id": "ethereum",
+      "version": "1.0",
+      "chainKind": "evm",
+      "name": "Ethereum",
+      "symbol": "ETH",
+      "icon": "../icons/ethereum/chain.svg",
+      "tokenIconContract": [
+        "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/$address/logo.png"
+      ],
+      "decimals": 18,
+      "blockTime": 12,
+      "apis": [
+        {
+          "type": "ethwallet-v1",
+          "endpoint": "https://walletapi.bfmeta.info/wallet/eth"
+        },
+        {
+          "type": "moralis",
+          "endpoint": "https://deep-index.moralis.io/api/v2.2",
+          "config": {
+            "txStatusInterval": 12000,
+            "balanceInterval": 36000,
+            "erc20Interval": 150000
+          }
+        },
+        {
+          "type": "etherscan-v2",
+          "endpoint": "https://api.etherscan.io/v2/api",
+          "config": {
+            "apiKeyEnv": "ETHERSCAN_API_KEY",
+            "evmChainId": 1
+          }
+        },
+        {
+          "type": "blockscout-v1",
+          "endpoint": "https://eth.blockscout.com/api"
+        },
+        {
+          "type": "ethereum-rpc",
+          "endpoint": "https://ethereum-rpc.publicnode.com"
+        },
+        {
+          "type": "etherscan-v1",
+          "endpoint": "https://api.etherscan.io/api",
+          "config": {
+            "apiKeyEnv": "ETHERSCAN_API_KEY"
+          }
+        }
+      ],
+      "explorer": {
+        "url": "https://eth.blockscout.com",
+        "queryTx": "https://eth.blockscout.com/tx/:hash",
+        "queryAddress": "https://eth.blockscout.com/address/:address"
+      }
+    },
+    {
+      "id": "binance",
+      "version": "1.0",
+      "chainKind": "evm",
+      "name": "BNB Smart Chain",
+      "symbol": "BNB",
+      "icon": "../icons/binance/chain.svg",
+      "tokenIconContract": [
+        "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/smartchain/assets/$address/logo.png"
+      ],
+      "decimals": 18,
+      "blockTime": 3,
+      "apis": [
+        {
+          "type": "bscwallet-v1",
+          "endpoint": "https://walletapi.bfmeta.info/wallet/bsc"
+        },
+        {
+          "type": "moralis",
+          "endpoint": "https://deep-index.moralis.io/api/v2.2",
+          "config": {
+            "txStatusInterval": 15000,
+            "balanceInterval": 30000,
+            "erc20Interval": 120000
+          }
+        },
+        {
+          "type": "bsc-rpc",
+          "endpoint": "https://bsc-rpc.publicnode.com"
+        },
+        {
+          "type": "etherscan-v2",
+          "endpoint": "https://api.etherscan.io/v2/api",
+          "config": {
+            "apiKeyEnv": "ETHERSCAN_API_KEY",
+            "evmChainId": 56
+          }
+        },
+        {
+          "type": "etherscan-v1",
+          "endpoint": "https://api.bscscan.com/api",
+          "config": {
+            "apiKeyEnv": "ETHERSCAN_API_KEY"
+          }
+        }
+      ],
+      "explorer": {
+        "url": "https://bscscan.com",
+        "queryTx": "https://bscscan.com/tx/:hash",
+        "queryAddress": "https://bscscan.com/address/:address"
+      }
+    },
+    {
+      "id": "tron",
+      "version": "1.0",
+      "chainKind": "tron",
+      "name": "Tron",
+      "symbol": "TRX",
+      "icon": "../icons/tron/chain.svg",
+      "tokenIconBase": [
+        "../icons/tron/tokens/$symbol.svg",
+        "https://bfm-fonts-cdn.oss-cn-hongkong.aliyuncs.com/meta-icon/tron/icon-$SYMBOL.png",
+        "https://raw.githubusercontent.com/BFChainMeta/fonts-cdn/main/src/meta-icon/tron/icon-$SYMBOL.png"
+      ],
+      "decimals": 6,
+      "blockTime": 3,
+      "apis": [
+        {
+          "type": "tronwallet-v1",
+          "endpoint": "https://walletapi.bfmeta.info/wallet/tron"
+        },
+        {
+          "type": "tron-rpc-pro",
+          "endpoint": "https://api.trongrid.io",
+          "config": {
+            "apiKeyEnv": "TRONGRID_API_KEY"
+          }
+        },
+        {
+          "type": "tron-rpc",
+          "endpoint": "https://api.trongrid.io"
+        }
+      ],
+      "explorer": {
+        "url": "https://tronscan.org",
+        "queryTx": "https://tronscan.org/#/transaction/:hash",
+        "queryAddress": "https://tronscan.org/#/address/:address"
+      }
+    },
+    {
+      "id": "bitcoin",
+      "version": "1.0",
+      "chainKind": "bitcoin",
+      "name": "Bitcoin",
+      "symbol": "BTC",
+      "icon": "../icons/bitcoin/chain.svg",
+      "tokenIconBase": [
+        "../icons/bitcoin/tokens/$symbol.svg",
+        "https://bfm-fonts-cdn.oss-cn-hongkong.aliyuncs.com/meta-icon/btcm/icon-$SYMBOL.png",
+        "https://raw.githubusercontent.com/BFChainMeta/fonts-cdn/main/src/meta-icon/btcm/icon-$SYMBOL.png"
+      ],
+      "decimals": 8,
+      "blockTime": 600,
+      "apis": [
+        {
+          "type": "btcwallet-v1",
+          "endpoint": "https://walletapi.bfmeta.info/wallet/btc/blockbook"
+        },
+        {
+          "type": "mempool-v1",
+          "endpoint": "https://mempool.space/api"
+        }
+      ],
+      "explorer": {
+        "url": "https://mempool.space",
+        "queryTx": "https://mempool.space/tx/:hash",
+        "queryAddress": "https://mempool.space/address/:address"
+      }
+    }
+  ]
+}

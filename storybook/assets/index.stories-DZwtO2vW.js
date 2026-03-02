@@ -1,0 +1,75 @@
+import{j as p}from"./iframe-DzuFRuhj.js";import{A as c}from"./wallet-config-DNkUBLhP.js";import{a as t,w as l}from"./user-profile-Lst41NQC.js";import"./service-CuZl5qzz.js";import{w as b,a as f}from"./storybook-decorators-ChGOzQ-k.js";import"./preload-helper-PPVm8Dsz.js";import"./utils-4perknFd.js";import"./useWalletTheme-CD_2dg1S.js";import"./wallet-card-carousel-DSYghth4.js";import"./swiper-Bu0y6qSW.js";import"./wallet-card-Bxfp9stk.js";import"./hologram-canvas-CLLGRaT2.js";import"./chain-icon-CCTPtJWR.js";import"./address-display-7as3xMpK.js";import"./web-B6zsnioA.js";import"./createReactComponent-CsXGsFmR.js";import"./breakpoint-DQ_qwb34.js";import"./schemas-CO8_C8zP.js";import"./useTranslation-D40cbtz1.js";import"./index-B9F8gwoO.js";import"./IconCheck-D3UN2JkH.js";import"./IconChevronDown-CU6cRRJ1.js";import"./IconSettings-5OBBNq6e.js";import"./dropdown-menu-DQbx9ymS.js";import"./index-BiyoNnDe.js";import"./index-JOOH_QYo.js";import"./composite-CzCzaE4j.js";import"./useRenderElement-DFeFw4Pv.js";import"./useBaseUiId-DpLAZ9hp.js";import"./useCompositeListItem-DnJAeaB0.js";import"./useRole-BWGTettQ.js";import"./useButton-CM703ikI.js";import"./IconWallet-C3H9SFKw.js";import"./IconPlus-B9SguHCy.js";import"./IconSearch-D6MGUd59.js";import"./button-BOmMMcH3.js";import"./TabBar-d1WRLUF7.js";import"./swiper-sync-context-CMW-npjS.js";import"./index-KE85JUzx.js";import"./wujie-container-C9ZD4AVW.js";import"./index-CU7q0Bhq.js";import"./amount-BQsqQYGO.js";import"./index-D0E7N0oa.js";import"./derivation-fzusHZu5.js";import"./bioforest-B_di51J9.js";import"./web-b2QCMe4-.js";import"./window-stack-BtL-ozcQ.js";import"./index-BkWKD4y7.js";import"./notification-Dqm-92cf.js";import"./transaction-meta-BgHHg1_y.js";import"./IconDots-DqK4pDBR.js";import"./IconShieldCheck-DzRAjyBV.js";import"./IconApps-mxLKwY9O.js";import"./IconCoins-_TogRhcL.js";import"./IconSparkles-5VBRpMEU.js";import"./IconLock-CF_UTXyJ.js";import"./IconTrash-Y7YG19ax.js";import"./ecosystem-desktop-C7gb0Urm.js";import"./my-apps-page-DTQ3z5o5.js";import"./config-HmZ3kn8E.js";import"./IconDownload-CB6_DKtP.js";import"./proxy-BbnaLl_K.js";import"./IconChevronRight-C6DhXH8l.js";import"./miniapp-splash-screen-CvOpICFF.js";import"./sheet-BMR53oon.js";import"./IconX-BvGa7VyR.js";import"./IconAlertTriangle-aXvM_85P.js";import"./IconExternalLink-9b51vR7g.js";import"./index-tkyHT5_h.js";import"./item-DU8_N0gq.js";import"./recover-wallet-form-CM73HjY3.js";import"./input-Cd_TsAVU.js";import"./useField-CB1h0LMP.js";import"./IconAlertCircle-AuYCkIyI.js";import"./IconLoader2-Cbizzn6D.js";import"./token-item-DBmOcw7K.js";import"./wallet-selector-CfHqGvW7.js";import"./wallet-mini-card-BueJkODP.js";import"./token-icon-3L29DdAq.js";import"./LoadingSpinner-DmOAyc7O.js";import"./NumberFlow-client-48rw3j0J-C4ZLpvgg.js";import"./amount-display-7-EvnWkm.js";import"./animated-number-CNsNfY0q.js";import"./time-display-BZHnvoRH.js";import"./service-status-alert-CVa6bCfH.js";import"./transaction-list-WGp7NNFe.js";import"./transaction-item-nWjMnonD.js";import"./IconRefresh-njXpVTPj.js";import"./swipeable-tabs-CdMFWq3T.js";import"./address-input-Z_VgBibN.js";import"./contact-avatar-BPNoQGjX.js";import"./avatar-codec-D5lgE01V.js";import"./IconPencil-D-ULnCX6.js";import"./page-header-CWDhFuRs.js";import"./pattern-lock-CUHEXEWs.js";import"./password-input-Bs5Q_1MV.js";import"./IconEyeOff-iel_Vxbo.js";import"./IconEye-CL0ldovl.js";import"./fee-display-C0Tg2_pY.js";import"./tx-status-display-Cw1t2ZTk.js";import"./wallet-list-Db5BizMg.js";import"./checkbox-Cu3CM9-m.js";import"./asset-selector-DHjfyVVw.js";import"./qr-parser-BG-vKTjg.js";import"./jsQR-Bdh9TFea.js";import"./index-DbPCTEdt.js";import"./scanner-validators-YRGmuXyx.js";import"./contact-card-BQwhDAop.js";import"./mnemonic-display-BYs1t7qv.js";import"./pattern-lock-setup-CKvd_e6a.js";import"./chain-selector-B_EIjUeY.js";import"./index-DbNv3Wbr.js";import"./IconCircleCheck-DYW5Izyu.js";import"./asset-item-vjlGDyr6.js";import"./asset-list-CWJJV45C.js";import"./amount-input-C6Q5X25A.js";import"./balance-display-3kCUj8-H.js";import"./send-result-uB8CdNSI.js";import"./transaction-status-D-Z2SE-H.js";import"./IconBan-B7o1fCGn.js";import"./IconClock-BO8xvaRF.js";import"./Trans-Bxsd-pev.js";import"./mnemonic-input-OM0LDFNN.js";import"./AppInfoCard-BhwvV7xK.js";import"./PermissionList-C9WUr7w9.js";import"./TransactionDetails-BgpyPjP7.js";import"./BalanceWarning-NCTo9Kok.js";import"./key-type-selector-CxrtNJKq.js";import"./arbitrary-key-input-qxZMVGrd.js";import"./IconRotateClockwise-C0eCEBZv.js";import"./chain-address-preview-Bq_ubm0S.js";import"./collision-confirm-dialog-DnCHYb5i.js";import"./IconBell-BNyRsz6e.js";import"./IconCircleX-fhUP8yHG.js";import"./IconShield-Djc633eR.js";const Wt={title:"Pages/AddressBook/AddressBookPage",component:c,decorators:[b(),f()],parameters:{layout:"fullscreen"}};function e(r,o="ETH"){return[{id:crypto.randomUUID(),address:r,label:o}]}const n=()=>{t.clearAll(),l.setState({wallets:[],currentWalletId:null,isInitialized:!0,isLoading:!1,chainPreferences:{},selectedChain:"ethereum"})},s={decorators:[r=>(n(),p.jsx(r,{}))]},a={decorators:[r=>(n(),t.addContact({name:"Alice",addresses:e("0x1234567890abcdef1234567890abcdef12345678"),memo:"同事"}),t.addContact({name:"Bob",addresses:e("0xabcdef1234567890abcdef1234567890abcdef12")}),t.addContact({name:"Charlie",addresses:e("0x9876543210fedcba9876543210fedcba98765432"),memo:"朋友"}),p.jsx(r,{}))]},i={decorators:[r=>{n();for(let o=1;o<=10;o++)t.addContact({name:`联系人 ${o}`,addresses:e(`0x${o.toString().padStart(40,"0")}`),...o%3===0?{memo:"有备注"}:{}});return p.jsx(r,{})}]},m={decorators:[r=>(n(),t.addContact({name:"Multi-Chain User",addresses:[{id:"1",address:"0x1234567890abcdef1234567890abcdef12345678",label:"ETH"},{id:"2",address:"b7ADmvZJJ3n3aDxkvwbXxJX1oGgeiCzL11",label:"BFMETA"},{id:"3",address:"TJYs1234567890abcdef1234567890abc",label:"TRX"}],memo:"多链用户"}),t.addContact({name:"Single Address",addresses:e("0xabcdef1234567890abcdef1234567890abcdef12")}),p.jsx(r,{}))]},d={decorators:[r=>(n(),t.addContact({name:"这是一个很长的联系人名称",addresses:e("0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef"),memo:"这是一个很长的备注信息，用于测试文本截断效果"}),p.jsx(r,{}))]};s.parameters={...s.parameters,docs:{...s.parameters?.docs,source:{originalSource:`{
+  decorators: [Story => {
+    resetStores();
+    return <Story />;
+  }]
+}`,...s.parameters?.docs?.source},description:{story:"空状态：没有联系人",...s.parameters?.docs?.description}}};a.parameters={...a.parameters,docs:{...a.parameters?.docs,source:{originalSource:`{
+  decorators: [Story => {
+    resetStores();
+    addressBookActions.addContact({
+      name: 'Alice',
+      addresses: createAddresses('0x1234567890abcdef1234567890abcdef12345678'),
+      memo: '同事'
+    });
+    addressBookActions.addContact({
+      name: 'Bob',
+      addresses: createAddresses('0xabcdef1234567890abcdef1234567890abcdef12')
+    });
+    addressBookActions.addContact({
+      name: 'Charlie',
+      addresses: createAddresses('0x9876543210fedcba9876543210fedcba98765432'),
+      memo: '朋友'
+    });
+    return <Story />;
+  }]
+}`,...a.parameters?.docs?.source},description:{story:"有联系人",...a.parameters?.docs?.description}}};i.parameters={...i.parameters,docs:{...i.parameters?.docs,source:{originalSource:`{
+  decorators: [Story => {
+    resetStores();
+    for (let i = 1; i <= 10; i++) {
+      addressBookActions.addContact({
+        name: \`联系人 \${i}\`,
+        addresses: createAddresses(\`0x\${i.toString().padStart(40, '0')}\`),
+        ...(i % 3 === 0 ? {
+          memo: '有备注'
+        } : {})
+      });
+    }
+    return <Story />;
+  }]
+}`,...i.parameters?.docs?.source},description:{story:"多个联系人",...i.parameters?.docs?.description}}};m.parameters={...m.parameters,docs:{...m.parameters?.docs,source:{originalSource:`{
+  decorators: [Story => {
+    resetStores();
+    addressBookActions.addContact({
+      name: 'Multi-Chain User',
+      addresses: [{
+        id: '1',
+        address: '0x1234567890abcdef1234567890abcdef12345678',
+        label: 'ETH'
+      }, {
+        id: '2',
+        address: 'b7ADmvZJJ3n3aDxkvwbXxJX1oGgeiCzL11',
+        label: 'BFMETA'
+      }, {
+        id: '3',
+        address: 'TJYs1234567890abcdef1234567890abc',
+        label: 'TRX'
+      }],
+      memo: '多链用户'
+    });
+    addressBookActions.addContact({
+      name: 'Single Address',
+      addresses: createAddresses('0xabcdef1234567890abcdef1234567890abcdef12')
+    });
+    return <Story />;
+  }]
+}`,...m.parameters?.docs?.source},description:{story:"多地址联系人",...m.parameters?.docs?.description}}};d.parameters={...d.parameters,docs:{...d.parameters?.docs,source:{originalSource:`{
+  decorators: [Story => {
+    resetStores();
+    addressBookActions.addContact({
+      name: '这是一个很长的联系人名称',
+      addresses: createAddresses('0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef'),
+      memo: '这是一个很长的备注信息，用于测试文本截断效果'
+    });
+    return <Story />;
+  }]
+}`,...d.parameters?.docs?.source},description:{story:"长名称和地址",...d.parameters?.docs?.description}}};const Ft=["Empty","WithContacts","ManyContacts","MultipleAddresses","LongContent"];export{s as Empty,d as LongContent,i as ManyContacts,m as MultipleAddresses,a as WithContacts,Ft as __namedExportsOrder,Wt as default};

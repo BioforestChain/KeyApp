@@ -1,0 +1,51 @@
+{
+  "id": "keyapp.bf-meta.org.dweb",
+  "server": {
+    "root": "/usr",
+    "entry": "/server/plaoc.server.js"
+  },
+  "minTarget": 3,
+  "maxTarget": 3,
+  "name": "BFM Pay",
+  "short_name": "BFM Pay",
+  "description": "BFM Pay - 多链钱包应用",
+  "logo": "https://bioforestchain.github.io/KeyApp/dweb/logo-256.webp",
+  "bundle_url": "./keyapp.bf-meta.org.dweb-1.0.19.zip",
+  "bundle_hash": "sha256:4cd5338e6c9ec659ad20a4e52b85dbd71efc70fc5a5f7f0dd04aed251008047e",
+  "bundle_size": 9285374,
+  "bundle_signature": "",
+  "public_key_url": "",
+  "release_date": "Mon Mar 02 2026 04:20:01 GMT+0000 (Coordinated Universal Time)",
+  "change_log": "修复传送门比例语义回退，与后端配置一致",
+  "images": [],
+  "author": [
+    "@bfmeta.info"
+  ],
+  "version": "1.0.19",
+  "categories": [
+    "application",
+    "wallet"
+  ],
+  "languages": [
+    "中文",
+    "English"
+  ],
+  "homepage_url": "keyapp.bf-meta.org",
+  "plugins": [],
+  "permissions": [],
+  "dir": "ltr",
+  "lang": "",
+  "icons": [
+    {
+      "src": "https://bioforestchain.github.io/KeyApp/dweb/logo-256.webp",
+      "purpose": "maskable"
+    }
+  ],
+  "screenshots": [],
+  "display": "fullscreen",
+  "orientation": "any",
+  "theme_color": "",
+  "background_color": "",
+  "shortcuts": [],
+  "home": "keyapp.bf-meta.org"
+}
